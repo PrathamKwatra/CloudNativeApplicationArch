@@ -22,7 +22,7 @@ type DbMap map[int]ToDoItem
 // todo app.  It contains a map of ToDoItems and the name of
 // the file that is used to store the items.
 //
-// TODO: Notice how the fields in the struct are not exported
+// Notice how the fields in the struct are not exported
 //
 //	   	 (they are lowercase).  Describe why you think this is
 //		 a good design decision.
@@ -88,18 +88,6 @@ func New(dbFile string) (*ToDo, error) {
 //		(2) The DB file will be saved with the item added
 //		(3) If there is an error, it will be returned
 func (t *ToDo) AddItem(item ToDoItem) error {
-	//TODO: Implement this function
-	//Start by loading the database into the private map in our struct
-	//see the loadDB() helper.  Then make sure the item we want to load
-	//has a unique ID.  Do this by checking if the item already exists
-	//in the map.  If it does, return an error with a proper message
-	//see (errors.New("MESSAGE GOES HERE")).  If the item does not exist
-	//in the map, add it to the map.  Then save the DB using the saveDB()
-	//helper.  If there are any errors, return them, as appropriate.
-	//If everything there are no errors, this function should return nil
-	//at the end to indicate that the item was properly added to the
-	//database.
-
 	err := t.loadDB()
 	if err != nil {
 		return err
@@ -132,17 +120,6 @@ func (t *ToDo) AddItem(item ToDoItem) error {
 //		(2) The DB file will be saved with the item removed
 //		(3) If there is an error, it will be returned
 func (t *ToDo) DeleteItem(id int) error {
-	//TODO: Implement this function
-	//Like the add item function, start by loading the database into the
-	//private map in our struct.  Then make sure the item we want to delete
-	//exists in the map.  After all we cannot delete an item that is not
-	//in the database. If the item is in our internal map t.toDoMap, then
-	//delete it.  You can use the built-in go delete() function to do this.
-	//We covered this in the go tutorial. As the final step, save the DB
-	//using the saveDB() helper.  If there are any errors, return them, as
-	//appropriate.  If everything there are no errors, this function should
-	//return nil at the end to indicate that the item was properly deleted
-	//from the database.
 	err := t.loadDB()
 	if err != nil {
 		return err
@@ -176,17 +153,6 @@ func (t *ToDo) DeleteItem(id int) error {
 //		(2) The DB file will be saved with the item updated
 //		(3) If there is an error, it will be returned
 func (t *ToDo) UpdateItem(item ToDoItem) error {
-	//TODO: Implement this function
-	//Like the add and delete functions, start by loading the database
-	//into the private map in our struct.  Then make sure the item we
-	//want to update exists in the map.  After all we cannot update an
-	//item that is not in the database. If the item is in our internal
-	//map t.toDoMap, then update it.  You can do this by simply assigning
-	//the item to the map.  We covered this in the go tutorial. As the
-	//final step, save the DB using the saveDB() helper.  If there are
-	//any errors, return them, as appropriate.  If everything there are
-	//no errors, this function should return nil at the end to indicate
-	//that the item was properly updated in the database.
 	err := t.loadDB()
 	if err != nil {
 		return err
@@ -220,17 +186,6 @@ func (t *ToDo) UpdateItem(item ToDoItem) error {
 //			along with an empty ToDoItem
 //		(3) The database file will not be modified
 func (t *ToDo) GetItem(id int) (ToDoItem, error) {
-	//TODO: Implement this function
-	//Like the add, delete, and update functions, start by loading the
-	//database into the private map in our struct.  Then make sure the
-	//item we want to get exists in the map.  After all we cannot get
-	//an item that is not in the database. If the item is in our internal
-	//map t.toDoMap, then return it.  You can do this by simply returning
-	//the item from the map.  We covered this in the go tutorial.  If there
-	//are any errors, return them, as appropriate.  If everything there are
-	//no errors, this function should return the item requested and nil
-	//as the error value the end to indicate that the item was
-	//properly returned from the database.
 	err := t.loadDB()
 	if err != nil {
 		return ToDoItem{}, err
@@ -254,16 +209,6 @@ func (t *ToDo) GetItem(id int) (ToDoItem, error) {
 //			along with an empty slice
 //		(3) The database file will not be modified
 func (t *ToDo) GetAllItems() ([]ToDoItem, error) {
-	//TODO: Implement this function
-	//Like many of the other functions start by loading the database into
-	//the private map in our struct.  Dont forget to return nil and an
-	//appropriate error if the database cannot be loaded. Next create an
-	//empty slice of ToDoItems.  Remember from the tutorial you can do this
-	//by "var toDoList []ToDoItem".  Now that we have an empty slice,
-	//iterate over our map and add each item to our slice.  Remember you
-	//use the built in append() function in go to add an item in a slice.
-	//Finally, if there were no errors along the way, return the slice
-	//and nil as the error value.
 	err := t.loadDB()
 	if err != nil {
 		return nil, err
@@ -329,15 +274,22 @@ func (t *ToDo) JsonToItem(jsonString string) (ToDoItem, error) {
 //			from the DB, then it should call UpdateItem() to update the
 //			item in the DB (after the status is changed).
 func (t *ToDo) ChangeItemDoneStatus(id int, value bool) error {
-	//TODO: Implement this function for EXTRA CREDIT if you want
-	//This function builds on all of the other functions you have
-	//implemented.  It should call GetItem() to get the item from
-	//the DB, then it should call UpdateItem() to update the item
-	//in the DB (after the status is changed).  If there are any
-	//errors along the way, return them.  If everything is successful
-	//return nil at the end to indicate that the item was properly
+	err := t.loadDB()
+	if err != nil {
+		return err
+	}
 
-	return errors.New("ChangeItemDoneStatus() is currently not implemented")
+	item, err := t.GetItem(id)
+	if err != nil {
+		return err
+	}
+
+	item.IsDone = value
+	if err := t.UpdateItem(item); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 //------------------------------------------------------------

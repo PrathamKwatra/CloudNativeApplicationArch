@@ -40,7 +40,7 @@ const (
 
 // processCmdLineFlags parses the command line flags for our CLI
 //
-// TODO: This function uses the flag package to parse the command line
+// This function uses the flag package to parse the command line
 //		 flags.  The flag package is not very flexible and can lead to
 //		 some confusing code.
 
@@ -106,12 +106,6 @@ func processCmdLineFlags() (AppOptType, error) {
 		case "d":
 			appOpt = DELETE_DB_ITEM
 
-		//TODO: EXTRA CREDIT - Implment the -s flag that changes the
-		//done status of an item in the database.  For example -s=true
-		//will set the done status for a particular item to true, and
-		//-s=false will set the done states for a particular item to
-		//false.
-		//
 		//HINT FOR EXTRA CREDIT
 		//Note the -s option also requires an id for the item to that
 		//you want to change.  I recommend you use the -q option to
@@ -120,7 +114,9 @@ func processCmdLineFlags() (AppOptType, error) {
 		case "s":
 			//For extra credit you will need to change some things here
 			//and also in main under the CHANGE_ITEM_STATUS case
-			appOpt = CHANGE_ITEM_STATUS
+			if appOpt == QUERY_DB_ITEM {
+				appOpt = CHANGE_ITEM_STATUS
+			}
 		default:
 			appOpt = INVALID_APP_OPT
 		}
@@ -217,7 +213,7 @@ func main() {
 		//For the CHANGE_ITEM_STATUS extra credit you will also
 		//need to add some code here
 		fmt.Println("Running CHANGE_ITEM_STATUS...")
-		fmt.Println("Not implemented yet, but it can be for extra credit")
+		todo.ChangeItemDoneStatus(queryFlag, itemStatusFlag)
 		fmt.Println("Ok")
 	default:
 		fmt.Println("INVALID_APP_OPT")

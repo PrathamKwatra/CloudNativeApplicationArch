@@ -1,0 +1,7 @@
+{
+    "todo-tree.highlights.defaultHighlight": {
+        "foreground": "#00d5ff",
+        "background": "#fff200",
+        "iconColour": "#00c3ff",
+    },
+}

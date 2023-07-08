@@ -55,7 +55,22 @@ const (
 //						   use it.  See github.com/spf13/cobra for information
 //						   on how to use it.
 //
-//	 YOUR ANSWER: <GOES HERE>
+//	 YOUR ANSWER:
+//		The flag package is used to parse the command line flags.
+// 		By using the flag.{type}Var (replace {type} with type of your own choice)
+//		function we bind the flag to a variable. We then use flag.Visit to loop over
+//		the flags and check which ones are set.
+//		For incorrect usage, we use flag.Usage() to show the help message. This uses
+//		the default messages set when using flag.StringVar, flag.IntVar, etc.
+//
+// 		On the command line side:
+// 			These are the permitted ways to provide flags:
+//				-flag
+//				--flag   // double dashes are also permitted
+//				-flag=x
+//				-flag x  // non-boolean flags only
+//
+
 func processCmdLineFlags() (AppOptType, error) {
 	flag.StringVar(&dbFileNameFlag, "db", "./data/todo.json", "Name of the database file")
 

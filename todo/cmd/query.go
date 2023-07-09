@@ -5,6 +5,7 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/spf13/cobra"
 )
@@ -22,6 +23,13 @@ var queryCmd = &cobra.Command{
 	`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("query called")
+		item, err := ToDo.GetItem(queryFlag)
+		if err != nil {
+			fmt.Println("Error: ", err)
+			os.Exit(1)
+		}
+		ToDo.PrintItem(item)
+		fmt.Println("Ok")
 	},
 }
 

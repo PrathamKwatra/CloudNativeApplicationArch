@@ -15,7 +15,8 @@
             "env": {},
             // pass args to program
             // "args": ["-a", "{ \"id\": 8, \"title\": \"This is my first project in go\",  \"done\": false}"],
-            "args": ["list", "--l", "db", "-db .\/data\/todo_test.json", "list", "--l"],
+            "args": ["db", "-f", "./data/todo_test.json", "list"],
+            // "args": ["db", "-f", "./data/todo_test.json"],
         },
    ]
 }

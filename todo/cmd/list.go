@@ -19,14 +19,13 @@ var listCmd = &cobra.Command{
 	`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("list called")
-		todo := CreateNewDb()
-		todoList, err := todo.GetAllItems()
+		todoList, err := ToDo.GetAllItems()
 		if err != nil {
 			fmt.Println("Error: ", err)
 			os.Exit(1)
 		}
 
-		todo.PrintAllItems(todoList)
+		ToDo.PrintAllItems(todoList)
 		fmt.Println("THERE ARE", len(todoList), "ITEMS IN THE DB")
 		fmt.Println("Ok")
 	},

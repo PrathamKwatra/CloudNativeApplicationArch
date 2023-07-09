@@ -4,10 +4,8 @@ Copyright © 2023 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
-	"fmt"
 	"os"
 
-	"drexel.edu/todo/db"
 	"github.com/spf13/cobra"
 )
 
@@ -32,12 +30,6 @@ var rootCmd = &cobra.Command{
 
 var (
 	dbFileNameFlag string
-	listFlag       bool
-	itemStatusFlag bool
-	queryFlag      int
-	addFlag        string
-	updateFlag     string
-	deleteFlag     int
 )
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -47,15 +39,6 @@ func Execute() {
 	if err != nil {
 		os.Exit(1)
 	}
-}
-
-func CreateNewDb() *db.ToDo {
-	todo, err := db.New(dbFileNameFlag)
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-	return todo
 }
 
 func init() {

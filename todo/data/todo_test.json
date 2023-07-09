@@ -8,20 +8,5 @@
     "id": 7,
     "title": "in progress",
     "done": false
-  },
-  {
-    "id": 1,
-    "title": "The order may be jumbled",
-    "done": false
-  },
-  {
-    "id": 2,
-    "title": "treat it like",
-    "done": false
-  },
-  {
-    "id": 3,
-    "title": "a puzzle",
-    "done": false
   }
 ]

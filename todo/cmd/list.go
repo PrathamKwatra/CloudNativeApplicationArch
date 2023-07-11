@@ -18,6 +18,7 @@ var listCmd = &cobra.Command{
 	Example: todo db list
 	`,
 	Run: func(cmd *cobra.Command, args []string) {
+		createTodoDb()
 		fmt.Println("list called")
 		todoList, err := ToDo.GetAllItems()
 		if err != nil {

@@ -9,6 +9,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var addFlag string
+
 // addCmd represents the add command
 var addCmd = &cobra.Command{
 	Use:   "add",
@@ -19,21 +21,24 @@ var addCmd = &cobra.Command{
 		Example: todo add -a '{"id": 1, "name":"test", "done":false}'
 	`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("add called")
+		createTodoDb()
+		fmt.Println("Running ADD_DB_ITEM...")
+		item, err := ToDo.JsonToItem(addFlag)
+		if err != nil {
+			fmt.Println("Add option requires a valid JSON todo item string")
+			fmt.Println("Error: ", err)
+			return
+		}
+		if err := ToDo.AddItem(item); err != nil {
+			fmt.Println("Error: ", err)
+			return
+		}
+		fmt.Println("Ok")
 	},
 }
 
 func init() {
 	dbCmd.AddCommand(addCmd)
-	addCmd.PersistentFlags().StringVar(&addFlag, "a", "", "Add an item to the database")
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// addCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// addCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	// Set the value of the addFlag variable when the user passes a valid JSON string
+	addCmd.Flags().StringVarP(&addFlag, "add", "a", "", "Add an item to the database")
 }

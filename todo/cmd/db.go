@@ -11,15 +11,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var (
-	itemStatusFlag bool
-	queryFlag      int
-	addFlag        string
-	updateFlag     string
-	deleteFlag     int
-)
-
-var ToDo *db.ToDo
+var ToDo *db.ToDo = nil
 
 //
 
@@ -37,11 +29,14 @@ var dbCmd = &cobra.Command{
 	`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("db is set to: " + dbFileNameFlag)
-		createTodoDb()
 	},
 }
 
 func createTodoDb() {
+	fmt.Println("db is set to: " + dbFileNameFlag)
+	if ToDo != nil {
+		return
+	}
 	todo, err := db.New(dbFileNameFlag)
 	if err != nil {
 		fmt.Println(err)
@@ -52,8 +47,7 @@ func createTodoDb() {
 
 func init() {
 	rootCmd.AddCommand(dbCmd)
-	dbCmd.Flags().StringVarP(&dbFileNameFlag, "file", "f", "./data/todo.json", "Name of the database file")
-	createTodoDb()
+	dbCmd.PersistentFlags().StringVarP(&dbFileNameFlag, "file", "f", "./data/todo.json", "Name of the database file")
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command

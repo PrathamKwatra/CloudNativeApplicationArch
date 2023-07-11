@@ -9,6 +9,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var itemStatusFlag bool
+
 // itemStatusCmd represents the itemStatus command
 var itemStatusCmd = &cobra.Command{
 	Use:   "itemStatus",
@@ -19,23 +21,19 @@ var itemStatusCmd = &cobra.Command{
 		Example: todo query -q 1 ItemStatus -s true
 	`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("itemStatus args: ", args)
-		fmt.Println("itemStatus called")
+		createTodoDb()
+		fmt.Println("Running CHANGE_ITEM_STATUS...")
+		err := ToDo.ChangeItemDoneStatus(queryFlag, itemStatusFlag)
+		if err != nil {
+			fmt.Println("Error: ", err)
+			return
+		}
+		fmt.Println("Ok")
 	},
 }
 
 func init() {
 	queryCmd.AddCommand(itemStatusCmd)
 
-	itemStatusCmd.PersistentFlags().BoolVar(&itemStatusFlag, "s", false, "Change item 'done' status to true or false")
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// itemStatusCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// itemStatusCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	itemStatusCmd.Flags().BoolVarP(&itemStatusFlag, "status", "s", true, "Change item 'done' status to true or false")
 }

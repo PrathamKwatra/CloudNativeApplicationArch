@@ -9,6 +9,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var deleteFlag int
+
 // deleteCmd represents the delete command
 var deleteCmd = &cobra.Command{
 	Use:   "delete",
@@ -19,13 +21,20 @@ var deleteCmd = &cobra.Command{
 		Example: todo delete -d 1
 	`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("delete called")
+		createTodoDb()
+		fmt.Println("Running DELETE_DB_ITEM...")
+		err := ToDo.DeleteItem(deleteFlag)
+		if err != nil {
+			fmt.Println("Error: ", err)
+			return
+		}
+		fmt.Println("Ok")
 	},
 }
 
 func init() {
 	dbCmd.AddCommand(deleteCmd)
-	deleteCmd.PersistentFlags().IntVar(&deleteFlag, "d", 0, "Delete an item from the database")
+	deleteCmd.Flags().IntVar(&deleteFlag, "d", 0, "Delete an item from the database")
 
 	// Here you will define your flags and configuration settings.
 

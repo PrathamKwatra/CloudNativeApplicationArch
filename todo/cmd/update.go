@@ -9,6 +9,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var updateFlag string
+
 // updateCmd represents the update command
 var updateCmd = &cobra.Command{
 	Use:   "update",
@@ -19,13 +21,25 @@ var updateCmd = &cobra.Command{
 		Example: todo update -u '{"id":1,"name":"test","done":false}'
 	`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("update called")
+		createTodoDb()
+		fmt.Println("Running UPDATE_DB_ITEM...")
+		item, err := ToDo.JsonToItem(updateFlag)
+		if err != nil {
+			fmt.Println("Update option requires a valid JSON todo item string")
+			fmt.Println("Error: ", err)
+			return
+		}
+		if err := ToDo.UpdateItem(item); err != nil {
+			fmt.Println("Error: ", err)
+			return
+		}
+		fmt.Println("Ok")
 	},
 }
 
 func init() {
 	dbCmd.AddCommand(updateCmd)
-	updateCmd.PersistentFlags().StringVar(&updateFlag, "u", "", "Update an item in the database")
+	updateCmd.Flags().StringVar(&updateFlag, "u", "", "Update an item in the database")
 
 	// Here you will define your flags and configuration settings.
 

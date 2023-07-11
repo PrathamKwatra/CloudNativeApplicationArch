@@ -21,7 +21,6 @@ var addCmd = &cobra.Command{
 		Example: todo add -a '{"id": 1, "name":"test", "done":false}'
 	`,
 	Run: func(cmd *cobra.Command, args []string) {
-		createTodoDb()
 		fmt.Println("Running ADD_DB_ITEM...")
 		item, err := ToDo.JsonToItem(addFlag)
 		if err != nil {

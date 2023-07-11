@@ -21,7 +21,6 @@ var updateCmd = &cobra.Command{
 		Example: todo update -u '{"id":1,"name":"test","done":false}'
 	`,
 	Run: func(cmd *cobra.Command, args []string) {
-		createTodoDb()
 		fmt.Println("Running UPDATE_DB_ITEM...")
 		item, err := ToDo.JsonToItem(updateFlag)
 		if err != nil {

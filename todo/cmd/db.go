@@ -30,6 +30,9 @@ var dbCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("db is set to: " + dbFileNameFlag)
 	},
+	PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		createTodoDb()
+	},
 }
 
 func createTodoDb() {

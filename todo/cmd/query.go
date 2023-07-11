@@ -25,7 +25,6 @@ var queryCmd = &cobra.Command{
 	`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("query called")
-		createTodoDb()
 		item, err := ToDo.GetItem(queryFlag)
 		if err != nil {
 			fmt.Println("Error: ", err)

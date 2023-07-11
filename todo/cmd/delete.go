@@ -21,7 +21,6 @@ var deleteCmd = &cobra.Command{
 		Example: todo delete -d 1
 	`,
 	Run: func(cmd *cobra.Command, args []string) {
-		createTodoDb()
 		fmt.Println("Running DELETE_DB_ITEM...")
 		err := ToDo.DeleteItem(deleteFlag)
 		if err != nil {

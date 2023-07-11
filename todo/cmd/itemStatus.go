@@ -21,7 +21,6 @@ var itemStatusCmd = &cobra.Command{
 		Example: todo query -q 1 ItemStatus -s true
 	`,
 	Run: func(cmd *cobra.Command, args []string) {
-		createTodoDb()
 		fmt.Println("Running CHANGE_ITEM_STATUS...")
 		err := ToDo.ChangeItemDoneStatus(queryFlag, itemStatusFlag)
 		if err != nil {

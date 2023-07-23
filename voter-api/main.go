@@ -25,7 +25,8 @@ func processCmdLineFlags() {
 	//the address 0.0.0.0 instructs the network stack to listen on all interfaces
 	//We set this up as a flag so that we can overwrite it on the command line if
 	//needed
-	flag.StringVar(&hostFlag, "h", "0.0.0.0", "Listen on all interfaces")
+	// flag.StringVar(&hostFlag, "h", "0.0.0.0", "Listen on all interfaces")
+	flag.StringVar(&hostFlag, "h", "localhost", "Listen on all interfaces")
 	flag.UintVar(&portFlag, "p", 1080, "Default Port")
 
 	flag.Parse()
@@ -45,8 +46,12 @@ func main() {
 	// r.DELETE("/voter", apiHandler.DeleteAllVoter)
 	// r.DELETE("/voter/:id", apiHandler.DeleteVoter)
 	r.GET("/crash", apiHandler.CrashSim)
-	r.GET("/voter", apiHandler.ListAllVoter)
-	r.GET("/voter/:id", apiHandler.GetVoter)
+	r.GET("/", apiHandler.ListAllVoter)
+	r.GET("/voters", apiHandler.ListAllVoter)
+	r.GET("/voters/:id", apiHandler.GetVoter)
+	r.GET("/voters/:id/polls", apiHandler.GetVoterHistory)
+	r.GET("/voters/:id/polls/:pollsid", apiHandler.GetPoll)
+	r.GET("/voters/health", apiHandler.HealthCheck)
 	// r.POST("/voter", apiHandler.AddVoter)
 	// r.PUT("/voter", apiHandler.UpdateVoter)
 

@@ -14,8 +14,9 @@
             "program": "${workspaceFolder}",
             "env": {},
             // pass args to program
-            "args": ["-a", "{ \"id\": 8, \"title\": \"This is my first project in go\",  \"done\": false}"],
-            // "args": ["-l"],
+            "args": ["db", "add", "-a", "{ \"id\": 9, \"title\": \"This is my first project in go\",  \"done\": false}"],
+            // "args": ["db", "query", "itemStatus", "-i", "1", "-s", "false"],
+            // "args": ["db", "-f", "./data/todo_test.json"],
         },
    ]
 }

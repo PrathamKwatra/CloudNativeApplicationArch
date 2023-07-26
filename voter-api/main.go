@@ -43,17 +43,20 @@ func main() {
 		os.Exit(1)
 	}
 
-	// r.DELETE("/voter", apiHandler.DeleteAllVoter)
-	// r.DELETE("/voter/:id", apiHandler.DeleteVoter)
-	r.GET("/crash", apiHandler.CrashSim)
+	// r.DELETE("/voters", apiHandler.DeleteAllVoter)
+	r.DELETE("/voters/:id", apiHandler.DeleteVoter)
+	r.DELETE("/voters/:id/polls/:pollsid", apiHandler.DeletePoll)
 	r.GET("/", apiHandler.ListAllVoter)
+	r.GET("/crash", apiHandler.CrashSim)
 	r.GET("/voters", apiHandler.ListAllVoter)
 	r.GET("/voters/:id", apiHandler.GetVoter)
 	r.GET("/voters/:id/polls", apiHandler.GetVoterHistory)
 	r.GET("/voters/:id/polls/:pollsid", apiHandler.GetPoll)
 	r.GET("/voters/health", apiHandler.HealthCheck)
-	// r.POST("/voter", apiHandler.AddVoter)
-	// r.PUT("/voter", apiHandler.UpdateVoter)
+	r.POST("/voters/:id", apiHandler.AddVoter)
+	r.POST("/voters/:id/polls/:pollsid", apiHandler.AddPoll)
+	r.PUT("/voters/:id", apiHandler.UpdateVoter)
+	r.PUT("/voters/:id/polls/:pollsid", apiHandler.UpdatePoll)
 
 	// //We will now show a common way to version an API and add a new
 	// //version of an API handler under /v2.  This new API will support

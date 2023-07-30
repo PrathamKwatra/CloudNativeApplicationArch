@@ -4,11 +4,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"os"
 	"time"
 )
 
-var voterDbFile = "./data/voter.json"
+// var voterDbFile = "./data/voter.json"
 
 type voterPoll struct {
 	PollID   uint64
@@ -47,10 +46,10 @@ func New() (*Voters, error) {
 
 func (v *Voters) AddVoter(item Voter) error {
 
-	err := v.loadDB()
-	if err != nil {
-		return err
-	}
+	// err := v.loadDB()
+	// if err != nil {
+	// 	return err
+	// }
 
 	//Before we add an item to the DB, lets make sure
 	//it does not exist, if it does, return an error
@@ -62,10 +61,10 @@ func (v *Voters) AddVoter(item Voter) error {
 	//Now that we know the item doesn'v exist, lets add it to our map
 	v.voterMap[item.VoterID] = item
 
-	saveErr := v.saveDB()
-	if saveErr != nil {
-		return err
-	}
+	// saveErr := v.saveDB()
+	// if saveErr != nil {
+	// 	return err
+	// }
 
 	//If everything is ok, return nil for the error
 	return nil
@@ -73,10 +72,10 @@ func (v *Voters) AddVoter(item Voter) error {
 
 func (v *Voters) UpdateVoter(item Voter) error {
 
-	err := v.loadDB()
-	if err != nil {
-		return err
-	}
+	// err := v.loadDB()
+	// if err != nil {
+	// 	return err
+	// }
 
 	//Before we add an item to the DB, lets make sure
 	//it does exist, if it does not, return an error
@@ -87,10 +86,10 @@ func (v *Voters) UpdateVoter(item Voter) error {
 
 	v.voterMap[item.VoterID] = item
 
-	saveErr := v.saveDB()
-	if saveErr != nil {
-		return err
-	}
+	// saveErr := v.saveDB()
+	// if saveErr != nil {
+	// 	return err
+	// }
 
 	//If everything is ok, return nil for the error
 	return nil
@@ -98,23 +97,27 @@ func (v *Voters) UpdateVoter(item Voter) error {
 
 func (v *Voters) DeleteVoter(id uint64) error {
 
-	err := v.loadDB()
-	if err != nil {
-		return err
-	}
+	// err := v.loadDB()
+	// if err != nil {
+	// 	return err
+	// }
 
-	// we should if item exists before trying to delete it
+	// we should check if item exists before trying to delete it
 	// this is a good practice, return an error if the
 	// item does not exist
+	_, ok := v.voterMap[id]
+	if !ok {
+		return errors.New("item does not exist")
+	}
 
 	//Now lets use the built-in go delete() function to remove
 	//the item from our map
 	delete(v.voterMap, id)
 
-	saveErr := v.saveDB()
-	if saveErr != nil {
-		return err
-	}
+	// saveErr := v.saveDB()
+	// if saveErr != nil {
+	// 	return err
+	// }
 
 	return nil
 }
@@ -129,10 +132,10 @@ func (v *Voters) DeleteAll() error {
 
 func (v *Voters) GetVoter(id uint64) (Voter, error) {
 
-	err := v.loadDB()
-	if err != nil {
-		return Voter{}, err
-	}
+	// err := v.loadDB()
+	// if err != nil {
+	// 	return Voter{}, err
+	// }
 
 	// Check if item exists before trying to get it
 	// this is a good practice, return an error if the
@@ -152,10 +155,10 @@ func (v *Voters) ChangeVoterID(id uint64, value bool) error {
 
 func (v *Voters) GetAllItems() ([]Voter, error) {
 
-	err := v.loadDB()
-	if err != nil {
-		return nil, err
-	}
+	// err := v.loadDB()
+	// if err != nil {
+	// 	return nil, err
+	// }
 
 	//Now that we have the DB loaded, lets crate a slice
 	var voters []Voter
@@ -171,10 +174,10 @@ func (v *Voters) GetAllItems() ([]Voter, error) {
 
 func (v *Voters) GetPoll(id uint64, pollsid uint64) (voterPoll, error) {
 
-	err := v.loadDB()
-	if err != nil {
-		return voterPoll{}, err
-	}
+	// err := v.loadDB()
+	// if err != nil {
+	// 	return voterPoll{}, err
+	// }
 
 	// Check if item exists before trying to get it
 	// this is a good practice, return an error if the
@@ -195,10 +198,10 @@ func (v *Voters) GetPoll(id uint64, pollsid uint64) (voterPoll, error) {
 
 func (v *Voters) AddPoll(voterID uint64, pollID uint64) error {
 
-	err := v.loadDB()
-	if err != nil {
-		return err
-	}
+	// err := v.loadDB()
+	// if err != nil {
+	// 	return err
+	// }
 
 	voter, ok := v.voterMap[voterID]
 	if !ok {
@@ -216,24 +219,25 @@ func (v *Voters) AddPoll(voterID uint64, pollID uint64) error {
 		PollID:   pollID,
 		VoteDate: time.Now(),
 	}
+
 	voter.VoteHistory = append(voteHistory, poll)
 
 	v.voterMap[voterID] = voter
 
-	saveErr := v.saveDB()
-	if saveErr != nil {
-		return err
-	}
+	// saveErr := v.saveDB()
+	// if saveErr != nil {
+	// 	return err
+	// }
 
 	return nil
 }
 
 func (v *Voters) UpdatePoll(voterID uint64, pollID uint64) error {
 
-	err := v.loadDB()
-	if err != nil {
-		return err
-	}
+	// err := v.loadDB()
+	// if err != nil {
+	// 	return err
+	// }
 
 	voter, ok := v.voterMap[voterID]
 	if !ok {
@@ -249,10 +253,10 @@ func (v *Voters) UpdatePoll(voterID uint64, pollID uint64) error {
 
 			v.voterMap[voterID] = voter
 
-			saveErr := v.saveDB()
-			if saveErr != nil {
-				return err
-			}
+			// saveErr := v.saveDB()
+			// if saveErr != nil {
+			// 	return err
+			// }
 
 			return nil
 		}
@@ -263,10 +267,10 @@ func (v *Voters) UpdatePoll(voterID uint64, pollID uint64) error {
 
 func (v *Voters) DeletePoll(voterID uint64, pollID uint64) error {
 
-	err := v.loadDB()
-	if err != nil {
-		return err
-	}
+	// err := v.loadDB()
+	// if err != nil {
+	// 	return err
+	// }
 
 	voter, ok := v.voterMap[voterID]
 	if !ok {
@@ -283,10 +287,10 @@ func (v *Voters) DeletePoll(voterID uint64, pollID uint64) error {
 			voter.VoteHistory = newPolls
 			v.voterMap[voterID] = voter
 
-			saveErr := v.saveDB()
-			if saveErr != nil {
-				return err
-			}
+			// saveErr := v.saveDB()
+			// if saveErr != nil {
+			// 	return err
+			// }
 
 			return nil
 		}
@@ -330,69 +334,69 @@ func (v *Voters) JsonToItem(jsonString string) (Voter, error) {
 }
 
 // DB functions
-func initDB(dbFileName string) error {
-	f, err := os.Create(dbFileName)
-	if err != nil {
-		return err
-	}
+// func initDB(dbFileName string) error {
+// 	f, err := os.Create(dbFileName)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	// Given we are working with a json array as our DB structure
-	// we should initialize the file with an empty array, which
-	// in json is represented as "[]
-	_, err = f.Write([]byte("[]"))
-	if err != nil {
-		return err
-	}
+// 	// Given we are working with a json array as our DB structure
+// 	// we should initialize the file with an empty array, which
+// 	// in json is represented as "[]
+// 	_, err = f.Write([]byte("[]"))
+// 	if err != nil {
+// 		return err
+// 	}
 
-	f.Close()
+// 	f.Close()
 
-	return nil
-}
+// 	return nil
+// }
 
-func (v *Voters) saveDB() error {
-	// //1. Convert our map into a slice
-	// //2. Marshal the slice into json
-	// //3. Write the json to our file
+// func (v *Voters) saveDB() error {
+// 	// //1. Convert our map into a slice
+// 	// //2. Marshal the slice into json
+// 	// //3. Write the json to our file
 
-	// //1. Convert our map into a slice
-	// var voters []Voter
-	// for _, item := range v.voterMap {
-	// 	voters = append(voters, item)
-	// }
+// 	// //1. Convert our map into a slice
+// 	// var voters []Voter
+// 	// for _, item := range v.voterMap {
+// 	// 	voters = append(voters, item)
+// 	// }
 
-	// //2. Marshal the slice into json, lets pretty print it, but
-	// //   this is not required
-	// data, err := json.MarshalIndent(voters, "", "  ")
-	// if err != nil {
-	// 	return err
-	// }
+// 	// //2. Marshal the slice into json, lets pretty print it, but
+// 	// //   this is not required
+// 	// data, err := json.MarshalIndent(voters, "", "  ")
+// 	// if err != nil {
+// 	// 	return err
+// 	// }
 
-	// //3. Write the json to our file
-	// err = os.WriteFile(voterDbFile, data, 0644)
-	// if err != nil {
-	// 	return err
-	// }
+// 	// //3. Write the json to our file
+// 	// err = os.WriteFile(voterDbFile, data, 0644)
+// 	// if err != nil {
+// 	// 	return err
+// 	// }
 
-	return nil
-}
+// 	return nil
+// }
 
-func (v *Voters) loadDB() error {
-	// data, err := os.ReadFile(voterDbFile)
-	// if err != nil {
-	// 	return err
-	// }
+// func (v *Voters) loadDB() error {
+// 	// data, err := os.ReadFile(voterDbFile)
+// 	// if err != nil {
+// 	// 	return err
+// 	// }
 
-	// //Now let's unmarshal the data into our map
-	// var voters []Voter
-	// err = json.Unmarshal(data, &voters)
-	// if err != nil {
-	// 	return err
-	// }
+// 	// //Now let's unmarshal the data into our map
+// 	// var voters []Voter
+// 	// err = json.Unmarshal(data, &voters)
+// 	// if err != nil {
+// 	// 	return err
+// 	// }
 
-	// //Now let's iterate over our slice and add each item to our map
-	// for _, item := range voters {
-	// 	v.voterMap[item.VoterID] = item
-	// }
+// 	// //Now let's iterate over our slice and add each item to our map
+// 	// for _, item := range voters {
+// 	// 	v.voterMap[item.VoterID] = item
+// 	// }
 
-	return nil
-}
+// 	return nil
+// }

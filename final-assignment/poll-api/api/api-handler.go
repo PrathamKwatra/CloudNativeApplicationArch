@@ -117,7 +117,7 @@ func (p *PollsAPI) GetPoll(c *gin.Context) {
 	id := c.Param("pollId")
 	if id == "" {
 		p.invalidCall()
-		c.JSON(http.StatusBadRequest, gin.H{"error": "No vote ID provided"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "No poll ID provided"})
 		return
 	}
 
@@ -164,7 +164,7 @@ func (p *PollsAPI) GetResults(c *gin.Context) {
 	id := c.Param("pollId")
 	if id == "" {
 		p.invalidCall()
-		c.JSON(http.StatusBadRequest, gin.H{"error": "No vote ID provided"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "No poll ID provided"})
 		return
 	}
 
@@ -298,7 +298,7 @@ func (p *PollsAPI) UpdatePoll(c *gin.Context) {
 	id := c.Param("pollId")
 	if id == "" {
 		p.invalidCall()
-		c.JSON(http.StatusBadRequest, gin.H{"error": "No vote ID provided"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "No poll ID provided"})
 		return
 	}
 

@@ -22,7 +22,7 @@ func processCmdLineFlags() {
 
 	flag.StringVar(&hostFlag, "h", "0.0.0.0", "Listen on all interfaces")
 	// flag.StringVar(&hostFlag, "h", "localhost", "Listen on all interfaces")
-	flag.UintVar(&portFlag, "p", 1080, "Default Port")
+	flag.UintVar(&portFlag, "p", 1080, "Default Port (cannot be changed)")
 	flag.StringVar(&cacheURL, "c", "localhost:6379", "Default cache location")
 	
 	flag.Parse()
@@ -44,12 +44,12 @@ func setupParms() {
 	cacheURL = envVarOrDefault("REDIS_URL", cacheURL)
 	hostFlag = envVarOrDefault("RLAPI_HOST", hostFlag)
 
-	pfNew, err := strconv.Atoi(envVarOrDefault("RLAPI_PORT", fmt.Sprintf("%d", portFlag)))
-	//only update the port if we were able to convert the env var to an int, else
-	//we will use the default we got from the command line, or command line defaults
-	if err == nil {
-		portFlag = uint(pfNew)
-	}
+	// pfNew, err := strconv.Atoi(envVarOrDefault("RLAPI_PORT", fmt.Sprintf("%d", portFlag)))
+	// //only update the port if we were able to convert the env var to an int, else
+	// //we will use the default we got from the command line, or command line defaults
+	// if err == nil {
+	// 	portFlag = uint(pfNew)
+	// }
 
 }
 

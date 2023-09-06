@@ -56,12 +56,12 @@ services:
     container_name: poll-api
     restart: always
     ports:
-      - '1082:10812'
+      - '1082:1082'
     environment:
       - REDIS_URL=cache:6379
     depends_on:
       votes-api:
-        condition: service_completed_successfully
+        condition: service_started
       # cache-init:
       #   condition: service_completed_successfully
     networks:
@@ -79,8 +79,10 @@ services:
     environment:
       - REDIS_URL=cache:6379
     depends_on:
-      cache-init:
-        condition: service_completed_successfully
+      # cache-init:
+      #   condition: service_completed_successfully
+      cache:
+        condition: service_started
     networks:
       - frontend
       - backend

@@ -4,6 +4,8 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strconv"
+	"log"
 
 	"drexel.edu/voter/api"
 	"github.com/gin-contrib/cors"
@@ -12,58 +14,75 @@ import (
 
 var (
 	hostFlag string
+	cacheURL string
 	portFlag uint
 )
 
 func processCmdLineFlags() {
 
-	//Note some networking lingo, some frameworks start the server on localhost
-	//this is a local-only interface and is fine for testing but its not accessible
-	//from other machines.  To make the server accessible from other machines, we
-	//need to listen on an interface, that could be an IP address, but modern
-	//cloud servers may have multiple network interfaces for scale.  With TCP/IP
-	//the address 0.0.0.0 instructs the network stack to listen on all interfaces
-	//We set this up as a flag so that we can overwrite it on the command line if
-	//needed
 	flag.StringVar(&hostFlag, "h", "0.0.0.0", "Listen on all interfaces")
 	// flag.StringVar(&hostFlag, "h", "localhost", "Listen on all interfaces")
-	flag.UintVar(&portFlag, "p", 1080, "Default Port")
+	flag.UintVar(&portFlag, "p", 1081, "Default Port (cannot be changed)")
+	flag.StringVar(&cacheURL, "c", "localhost:6379", "Default cache location")
+	
 
 	flag.Parse()
 }
 
-func main() {
+func envVarOrDefault(envVar string, defaultVal string) string {
+	envVal := os.Getenv(envVar)
+	if envVal != "" {
+		return envVal
+	}
+	return defaultVal
+}
+
+func setupParms() {
+	//first process any command line flags
 	processCmdLineFlags()
+
+	//now process any environment variables
+	cacheURL = envVarOrDefault("REDIS_URL", cacheURL)
+	hostFlag = envVarOrDefault("RLAPI_HOST", hostFlag)
+
+	// pfNew, err := strconv.Atoi(envVarOrDefault("RLAPI_PORT", fmt.Sprintf("%d", portFlag)))
+	// //only update the port if we were able to convert the env var to an int, else
+	// //we will use the default we got from the command line, or command line defaults
+	// if err == nil {
+	// 	portFlag = uint(pfNew)
+	// }
+
+}
+
+func main() {
+	setupParms()
+	log.Println("Init/cacheURL: " + cacheURL)
+	log.Println("Init/hostFlag: " + hostFlag)
+	log.Printf("Init/portFlag: %d", portFlag)
+
 	r := gin.Default()
 	r.Use(cors.Default())
 
-	apiHandler, err := api.New()
+	apiHandler, err := api.New(cacheURL, api.API{
+		Self: "http://localhost:1081",
+		Polls: "http://localhost:1082/polls",
+		Votes: "http://localhost:1080/votes",
+	})
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
 
-	// r.DELETE("/voters", apiHandler.DeleteAllVoter)
-	r.DELETE("/voters/:id", apiHandler.DeleteVoter)
-	r.DELETE("/voters/:id/polls/:pollsid", apiHandler.DeletePoll)
-	r.GET("/", apiHandler.ListAllVoter)
+	r.GET("/", apiHandler.GetPolls)
 	r.GET("/crash", apiHandler.CrashSim)
-	r.GET("/voters", apiHandler.ListAllVoter)
-	r.GET("/voters/:id", apiHandler.GetVoter)
-	r.GET("/voters/:id/polls", apiHandler.GetVoterHistory)
-	r.GET("/voters/:id/polls/:pollsid", apiHandler.GetPoll)
 	r.GET("/voters/health", apiHandler.HealthCheck)
-	r.POST("/voters/:id", apiHandler.AddVoter)
-	r.POST("/voters/:id/polls/:pollsid", apiHandler.AddPoll)
-	r.PUT("/voters/:id", apiHandler.UpdateVoter)
-	r.PUT("/voters/:id/polls/:pollsid", apiHandler.UpdatePoll)
-
-	// //We will now show a common way to version an API and add a new
-	// //version of an API handler under /v2.  This new API will support
-	// //a path parameter to search for todos based on a status
-	// v2 := r.Group("/v2")
-	// v2.GET("/todo", apiHandler.ListSelectTodos)
-
+	r.GET("/voters/:pollId", apiHandler.GetVoter)
+	// r.GET("/voters/:voterId/polls/:pollsId", apiHandler.GetPoll)
+	r.GET("/voters", apiHandler.GetVoters)
+	r.POST("/voters/:voterId", apiHandler.PostVoter)
+	r.PUT("/voters/:voterId", apiHandler.UpdateVoter)
+	r.DELETE("/voters/:voterId", apiHandler.DeleteVoter)
+	
 	serverPath := fmt.Sprintf("%s:%d", hostFlag, portFlag)
 	r.Run(serverPath)
 }

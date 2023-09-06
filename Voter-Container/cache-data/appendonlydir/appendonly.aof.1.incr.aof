@@ -1,0 +1,70 @@
+*2
+$6
+SELECT
+$1
+0
+*1
+$7
+flushdb
+*4
+$8
+json.set
+$7
+voter:1
+$1
+$
+$204
+{ "VoterID": 1, "FirstName": "John", "LastName": "Doe", "VoteHistory": [ { "PollID": 1, "VoteDate": "2023-07-24T01:36:10.6874129-04:00"}, { "PollID": 3, "VoteDate": "2023-07-24T01:35:38.6498239-04:00" }]}
+*4
+$8
+json.set
+$7
+voter:2
+$1
+$
+$199
+ { "VoterID": 2,  "FirstName": "Jane",  "LastName": "Doe",  "VoteHistory": [    {   "PollID": 1,   "VoteDate": "2019-11-01T00:00:00Z"    },    {   "PollID": 2, "VoteDate": "2019-11-02T00:00:00Z" }] }
+*4
+$8
+json.set
+$7
+voter:3
+$1
+$
+$210
+{  "VoterID": 3,  "FirstName": "John",  "LastName": "Smith",  "VoteHistory": [    {   "PollID": 1,   "VoteDate": "2019-11-01T00:00:00Z"    },    {   "PollID": 2,   "VoteDate": "2019-11-02T00:00:00Z"    }  ]   }
+*2
+$6
+SELECT
+$1
+0
+*1
+$7
+flushdb
+*4
+$8
+json.set
+$7
+voter:1
+$1
+$
+$204
+{ "VoterID": 1, "FirstName": "John", "LastName": "Doe", "VoteHistory": [ { "PollID": 1, "VoteDate": "2023-07-24T01:36:10.6874129-04:00"}, { "PollID": 3, "VoteDate": "2023-07-24T01:35:38.6498239-04:00" }]}
+*4
+$8
+json.set
+$7
+voter:2
+$1
+$
+$199
+ { "VoterID": 2,  "FirstName": "Jane",  "LastName": "Doe",  "VoteHistory": [    {   "PollID": 1,   "VoteDate": "2019-11-01T00:00:00Z"    },    {   "PollID": 2, "VoteDate": "2019-11-02T00:00:00Z" }] }
+*4
+$8
+json.set
+$7
+voter:3
+$1
+$
+$210
+{  "VoterID": 3,  "FirstName": "John",  "LastName": "Smith",  "VoteHistory": [    {   "PollID": 1,   "VoteDate": "2019-11-01T00:00:00Z"    },    {   "PollID": 2,   "VoteDate": "2019-11-02T00:00:00Z"    }  ]   }

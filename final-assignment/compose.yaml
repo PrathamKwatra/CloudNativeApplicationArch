@@ -1,0 +1,93 @@
+version: '3.8'
+services:
+  cache:
+    image: redis/redis-stack:latest
+    container_name: voter-cache
+    restart: on-failure
+    ports:
+      - "6379:6379"
+      - "8001:8001"
+    volumes:
+      - ./cache-data:/data
+    environment:
+      - REDIS_ARGS=--appendonly yes
+    networks:
+      - backend
+      - frontend
+
+  cache-init:
+    image: redis/redis-stack:latest
+    volumes:
+      - ./cache-data:/data
+    environment:
+      - REDIS_ARGS=--appendonly yes
+    networks:
+      - backend
+    # command: /data/load-redis.sh cache
+    depends_on:
+      cache:
+        condition: service_started
+    
+    
+  # voter-api:
+  #   build:
+  #     context: ./voter-api
+  #     dockerfile: dockerfile
+  #   # image: ninjaversionfive0/voter-api:latest
+  #   container_name: voter-api
+  #   restart: always
+  #   ports:
+  #     - '1080:1080'
+  #   environment:
+  #     - REDIS_URL=cache:6379
+  #   depends_on:
+  #     votes-api:
+  #       condition: service_completed_successfully
+  #     cache-init:
+  #       condition: service_completed_successfully
+  #   networks:
+  #     - frontend
+  #     - backend
+
+  poll-api:
+    build:
+      context: ./poll-api
+      dockerfile: dockerfile
+    container_name: poll-api
+    restart: always
+    ports:
+      - '1082:10812'
+    environment:
+      - REDIS_URL=cache:6379
+    depends_on:
+      votes-api:
+        condition: service_completed_successfully
+      # cache-init:
+      #   condition: service_completed_successfully
+    networks:
+      - frontend
+      - backend
+
+  votes-api:
+    build:
+      context: ./votes-api
+      dockerfile: dockerfile
+    container_name: votes-api
+    restart: always
+    ports:
+      - '1080:1080'
+    environment:
+      - REDIS_URL=cache:6379
+    depends_on:
+      cache-init:
+        condition: service_completed_successfully
+    networks:
+      - frontend
+      - backend
+
+
+networks:
+  frontend:
+    internal: false
+  backend:
+    internal: true

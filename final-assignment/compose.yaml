@@ -29,25 +29,24 @@ services:
         condition: service_started
     
     
-  # voter-api:
-  #   build:
-  #     context: ./voter-api
-  #     dockerfile: dockerfile
-  #   # image: ninjaversionfive0/voter-api:latest
-  #   container_name: voter-api
-  #   restart: always
-  #   ports:
-  #     - '1080:1080'
-  #   environment:
-  #     - REDIS_URL=cache:6379
-  #   depends_on:
-  #     votes-api:
-  #       condition: service_completed_successfully
-  #     cache-init:
-  #       condition: service_completed_successfully
-  #   networks:
-  #     - frontend
-  #     - backend
+  voter-api:
+    build:
+      context: ./voter-api
+      dockerfile: dockerfile
+    container_name: voter-api
+    restart: always
+    ports:
+      - '1081:1081'
+    environment:
+      - REDIS_URL=cache:6379
+    depends_on:
+      votes-api:
+        condition: service_started
+      # cache-init:
+      #   condition: service_completed_successfully
+    networks:
+      - frontend
+      - backend
 
   poll-api:
     build:
@@ -79,10 +78,10 @@ services:
     environment:
       - REDIS_URL=cache:6379
     depends_on:
-      # cache-init:
-      #   condition: service_completed_successfully
       cache:
         condition: service_started
+      # cache-init:
+      #   condition: service_completed_successfully
     networks:
       - frontend
       - backend

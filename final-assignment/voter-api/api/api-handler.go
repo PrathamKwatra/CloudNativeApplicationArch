@@ -203,6 +203,7 @@ func (v *VotersAPI) PostVoter(c *gin.Context) {
 		return
 	}
 
+	voter.VoterPolls = []schema.VoterPoll{}
 	voter.Meta.TotalVotes = 0
 	voter.Meta.CreatedAt = time.Now()
 

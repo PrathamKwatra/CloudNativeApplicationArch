@@ -16,9 +16,9 @@ type Vote struct {
 
 type VoterPoll struct {
 	PollId  int       `json:"pollId"`
+	VoteId  int       `json:"voteId"`
 	VotedAt time.Time `json:"votedAt"`
 	Links   Links     `json:"_links"`
-	Meta    Meta      `json:"_meta,omitempty"`
 }
 
 type Voter struct {
@@ -46,7 +46,7 @@ type Poll struct {
 	Title    string       `json:"title"`
 	Question string       `json:"question"`
 	Options  []pollOption `json:"options"`
-	Results []Results `json:"results"`
+	Results  []Results    `json:"results"`
 
 	Links    Links `json:"_links"`
 	Embedded any   `json:"_embedded,omitempty"`
@@ -68,8 +68,8 @@ type Links struct {
 }
 
 type Meta struct {
-	TotalPolls int `json:"TotalPolls,omitempty"`
-	TotalVotes int `json:"TotalVotes,omitempty"`
+	TotalPolls int       `json:"TotalPolls,omitempty"`
+	TotalVotes int       `json:"TotalVotes,omitempty"`
 	CreatedAt  time.Time `json:"CreatedAt,omitempty"`
 	UpdatedAt  time.Time `json:"UpdatedAt,omitempty"`
 }

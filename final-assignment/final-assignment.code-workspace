@@ -11,6 +11,9 @@
 		},
 		{
 			"path": "votes-api"
+		},
+		{
+			"path": "testing_scripts"
 		}
 	],
 	"settings": {}

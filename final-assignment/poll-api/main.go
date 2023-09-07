@@ -3,9 +3,8 @@ package main
 import (
 	"flag"
 	"fmt"
-	"os"
-	"strconv"
 	"log"
+	"os"
 
 	"drexel.edu/polls/api"
 	"github.com/gin-contrib/cors"
@@ -24,7 +23,6 @@ func processCmdLineFlags() {
 	// flag.StringVar(&hostFlag, "h", "localhost", "Listen on all interfaces")
 	flag.UintVar(&portFlag, "p", 1082, "Default Port (cannot be changed)")
 	flag.StringVar(&cacheURL, "c", "localhost:6379", "Default cache location")
-	
 
 	flag.Parse()
 }
@@ -64,9 +62,9 @@ func main() {
 	r.Use(cors.Default())
 
 	apiHandler, err := api.New(cacheURL, api.API{
-		Self: "http://localhost:1082",
+		Self:   "http://localhost:1082",
 		Voters: "http://localhost:1081/voters",
-		Votes: "http://localhost:1080/votes",
+		Votes:  "http://localhost:1080/votes",
 	})
 	if err != nil {
 		fmt.Println(err)
@@ -82,7 +80,7 @@ func main() {
 	r.POST("/polls/:pollId", apiHandler.PostPoll)
 	r.PUT("/polls/:pollId", apiHandler.UpdatePoll)
 	r.DELETE("/polls/:pollId", apiHandler.DeletePoll)
-	
+
 	serverPath := fmt.Sprintf("%s:%d", hostFlag, portFlag)
 	r.Run(serverPath)
 }

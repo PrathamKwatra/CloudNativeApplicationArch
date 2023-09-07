@@ -248,7 +248,11 @@ func (v *VotesAPI) PostVote(c *gin.Context) {
 
 	// update the total votes count on Voter
 	voter.Meta.TotalVotes++
-
+	voter.VoterPolls = append(voter.VoterPolls, schema.VoterPoll{
+		PollId:  poll.Id,
+		VoteId:  vote.Id,
+		VotedAt: time.Now(),
+	})
 	//update in redis
 	cacheKey = "voters:" + fmt.Sprint(voter.Id)
 	_, err = v.helper.JSONSet(cacheKey, ".", voter)
@@ -287,10 +291,49 @@ func (v *VotesAPI) DeleteVote(c *gin.Context) {
 
 	// check if the vote exists
 	cacheKey := "votes:" + id
-	_, err := v.helper.JSONGet(cacheKey, ".")
+	var vote schema.Vote
+	err := v.getItemFromRedis(cacheKey, &vote)
 	if err != nil {
 		v.invalidCall()
 		c.JSON(http.StatusNotFound, gin.H{"error": "Could not find vote in cache with id=" + cacheKey})
+		return
+	}
+	// get the voter and poll
+	var voter schema.Voter
+	var poll schema.Poll
+	err = getVoterAndPoll(&vote, v, voter, poll)
+	if err != nil {
+		v.invalidCall()
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not find voter or poll\n" + err.Error()})
+		return
+	}
+
+	// update the poll results
+	poll.Results[vote.VoteValue].Votes--
+
+	// update in redis
+	cacheKey = "polls:" + fmt.Sprint(poll.Id)
+	_, err = v.helper.JSONSet(cacheKey, ".", poll)
+	if err != nil {
+		v.invalidCall()
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not update poll results in cache"})
+		return
+	}
+
+	// update the total votes count on Voter
+	voter.Meta.TotalVotes--
+	for i, vp := range voter.VoterPolls {
+		if vp.VoteId == vote.Id {
+			voter.VoterPolls = append(voter.VoterPolls[:i], voter.VoterPolls[i+1:]...)
+			break
+		}
+	}
+	//update in redis
+	cacheKey = "voters:" + fmt.Sprint(voter.Id)
+	_, err = v.helper.JSONSet(cacheKey, ".", voter)
+	if err != nil {
+		v.invalidCall()
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not update voter in cache"})
 		return
 	}
 

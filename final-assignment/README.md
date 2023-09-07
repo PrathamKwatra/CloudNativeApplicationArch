@@ -13,9 +13,9 @@ to build and run the project: ```.\start.sh``` should be enough.
 There is a python test script that tests some basic and integrated tests in the API. Such
 as multiple voters, invalid Id, non-existent poll id or voter id, updating polls and more.
 To run this file, use the ```.\testing.sh```
-This requires python3.7+ and activates python using ```python3 [command]```
+This requires python3.10+ and activates python using ```python3 [command]```
 
-While there is a dockerfile present for the python test, it currently has some issues on certain devices.
+While there is a dockerfile present for the python test, it currently has some issues on certain devices. The issue is related to the connections being refused, however I am not sure why they occur as they don't occur when tested locally.
 It works on most devices!
 ```
 docker compose --profile test up
@@ -26,6 +26,8 @@ create a sample db. Though, this requires some extra work, as it would require c
 on line 556 and uncommenting the line 557.
 
 To view the data in redis, uncomment line 9 and 16 in ```compose.yaml```
+
+*Caution: This script requires a clean cache, otherwise this will not work. To clean the cache, you can either re-run cache-init container or run the entire thing again*
 
 # Limitations
 The DELETE commands sent on voter or poll does not search for related votes. Hence the votes

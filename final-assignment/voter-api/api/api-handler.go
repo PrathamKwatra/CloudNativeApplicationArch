@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	RedisKeyPrefix      = "voters:"
+	RedisKeyPrefix = "voters:"
 )
 
 type cache struct {
@@ -33,15 +33,15 @@ type Health struct {
 }
 
 type API struct {
-	Votes  string
+	Votes string
 	Polls string
-	Self   string
+	Self  string
 }
 
 type VotersAPI struct {
 	cache
-	health    Health
-	API       API
+	health Health
+	API    API
 }
 
 func (v *VotersAPI) validCall() {
@@ -111,290 +111,232 @@ func (v *VotersAPI) HealthCheck(c *gin.Context) {
 	})
 }
 
-func (v *VotersAPI) GetPoll(c *gin.Context) {
-	var poll schema.Poll
-	id := c.Param("pollId")
+func (v *VotersAPI) GetVoter(c *gin.Context) {
+	var voter schema.Voter
+	id := c.Param("voterId")
 	if id == "" {
-		p.invalidCall()
-		c.JSON(http.StatusBadRequest, gin.H{"error": "No vote ID provided"})
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "No Voter ID provided",
+		})
+		v.invalidCall()
 		return
 	}
 
 	_, err := strconv.Atoi(id)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"msg": "Invalid poll id",
+			"msg": "Invalid voter id",
 		})
-		p.invalidCall()
+		v.invalidCall()
 		return
 	}
 
-	err = getItemFromRedis(id, p, poll)
+	err = getItemFromRedis(id, v, voter)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError,
 			gin.H{
-				"msg": "Unable to retrieve poll.\n" + err.Error(),
+				"msg": "Error getting voter from cache",
 			})
-		p.invalidCall()
+		v.invalidCall()
 		return
 	}
 
-	genHalJSONResponse(poll, p)
-
-	p.validCall()
-	c.JSON(http.StatusOK, poll)
+	genHalJSONResponse(voter, v)
+	v.validCall()
+	c.JSON(http.StatusOK, voter)
 }
-
-func getItemFromRedis(id string, v *VotersAPI, poll schema.Poll) error {
-	pollKey := RedisKeyPrefix + id
-	pollJSON, err := p.helper.JSONGet(pollKey, ".")
-	if err != nil {
-		return err
-	}
-
-	err = json.Unmarshal([]byte(pollJSON.(string)), &poll)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (v *VotersAPI) GetResults(c *gin.Context) {
-	id := c.Param("pollId")
-	if id == "" {
-		p.invalidCall()
-		c.JSON(http.StatusBadRequest, gin.H{"error": "No vote ID provided"})
-		return
-	}
-
-	_, err := strconv.Atoi(id)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"msg": "Invalid poll id",
-		})
-		p.invalidCall()
-		return
-	}
-
-	pollKey := RedisKeyPrefix + id
-	pollJSON, err := p.helper.JSONGet(pollKey, ".")
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"msg": "Either the poll does not exist or there was an error retrieving it.",
-		})
-		p.invalidCall()
-		return
-	}
-
-	var poll schema.Poll
-	err = json.Unmarshal([]byte(pollJSON.(string)), &poll)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"msg": "Error unmarshalling poll",
-		})
-		p.invalidCall()
-		return
-	}
-	var result struct {
-		Results []schema.Results `json:"results"`
-		Meta    schema.Meta      `json:"_meta"`
-		Links   schema.Links     `json:"_links"`
-	}
-	result.Results = poll.Results
-	result.Meta = poll.Meta
-	result.Links = poll.Links
-	p.validCall()
-	c.JSON(http.StatusOK, result)
-}
-
-func (v *VotersAPI) GetPolls(c *gin.Context) {
-	pollKey := RedisKeyPrefix + "*"
-	polls, err := p.helper.JSONGet(pollKey, ".")
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"msg": "Error retrieving polls",
-		})
-		p.invalidCall()
-		return
-	}
-
-	var pollList []schema.Poll
-	err = json.Unmarshal([]byte(polls.(string)), &pollList)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"msg": "Error unmarshalling polls",
-		})
-		p.invalidCall()
-		return
-	}
-
-	p.validCall()
-	c.JSON(http.StatusOK, pollList)
-}
-
-func (v *VotersAPI) PostPoll(c *gin.Context) {
-	var poll schema.Poll
-	id := c.Param("pollId")
-	if id == "" {
-		p.invalidCall()
-		c.JSON(http.StatusBadRequest, gin.H{"error": "No poll ID provided"})
-		return
-	}
-
-	_, err := strconv.Atoi(id)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"msg": "Invalid poll id",
-		})
-		p.invalidCall()
-		return
-	}
-
-	// bind the request body into a poll struct
-	err = c.BindJSON(&poll)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"msg": "Error unmarshalling poll",
-		})
-		p.invalidCall()
-		return
-	}
-
-	poll.Results = make([]schema.Results, len(poll.Options))
-	for i, option := range poll.Options {
-		poll.Results[i].OptionId = option.Id
-		poll.Results[i].Votes = 0
-	}
-
-	poll.Meta.TotalVotes = 0
-	poll.Meta.CreatedAt = time.Now()
-
-	// generate the links and embedded
-	genHalJSONResponse(poll, p)
-
-	err = p.savePoll(&poll)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"msg": "Error saving poll",
-		})
-		p.invalidCall()
-		return
-	}
-
-	p.validCall()
-	c.JSON(http.StatusOK, poll)
-}
-
-func genHalJSONResponse(poll schema.Poll, v *VotersAPI) {
-	poll.Links.Self.Href = p.API.Self + "/polls/" + strconv.Itoa(poll.Id)
-	poll.Links.Vote.Href = p.API.Votes
-	poll.Links.Voters.Href = p.API.Voters
-	poll.Links.Results.Href = p.API.Self + "/polls/" + strconv.Itoa(poll.Id) + "/results"
-}
-
-func (v *VotersAPI) UpdatePoll(c *gin.Context) {
-	var poll schema.Poll
-	id := c.Param("pollId")
-	if id == "" {
-		p.invalidCall()
-		c.JSON(http.StatusBadRequest, gin.H{"error": "No vote ID provided"})
-		return
-	}
-
-	_, err := strconv.Atoi(id)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"msg": "Invalid poll id",
-		})
-		p.invalidCall()
-		return
-	}
-
-	err = getItemFromRedis(id, p, poll)
+func (v *VotersAPI) GetVoters(c *gin.Context) {
+	voterKey := RedisKeyPrefix + "*"
+	voters, err := v.helper.JSONGet(voterKey, ".")
 	if err != nil {
 		c.JSON(http.StatusInternalServerError,
 			gin.H{
-				"msg": "Unable to retrieve poll.\n" + err.Error(),
+				"msg": "Error getting voters from cache",
 			})
-		p.invalidCall()
+		v.invalidCall()
 		return
 	}
 
-	// updating the poll should reset the votes.
-	var newPoll schema.Poll
-	err = c.BindJSON(&newPoll)
+	var voterList []schema.Voter
+	err = json.Unmarshal([]byte(voters.(string)), &voterList)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError,
+			gin.H{
+				"msg": "Error getting voters from cache",
+			})
+		v.invalidCall()
+		return
+	}
+
+	for i := range voterList {
+		genHalJSONResponse(voterList[i], v)
+	}
+
+	v.validCall()
+	c.JSON(http.StatusOK, voterList)
+}
+func (v *VotersAPI) PostVoter(c *gin.Context) {
+	var voter schema.Voter
+	id := c.Param("voterId")
+	if id == "" {
+		v.invalidCall()
+		c.JSON(http.StatusBadRequest, gin.H{"error": "No voter ID provided"})
+		return
+	}
+
+	_, err := strconv.Atoi(id)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"msg": "Error unmarshalling poll",
+			"msg": "Invalid voter id",
 		})
-		p.invalidCall()
+		v.invalidCall()
 		return
 	}
 
-	newPoll.Results = make([]schema.Results, len(newPoll.Options))
-	for i, option := range newPoll.Options {
-		newPoll.Results[i].OptionId = option.Id
-		newPoll.Results[i].Votes = 0
+	// bind the request body into a voter struct
+	err = c.BindJSON(&voter)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"msg": "Error unmarshalling voter\n" + err.Error(),
+		})
+		v.invalidCall()
+		return
 	}
 
-	newPoll.Meta.CreatedAt = poll.Meta.CreatedAt
-	newPoll.Meta.UpdatedAt = time.Now()
+	voter.Meta.TotalVotes = 0
+	voter.Meta.CreatedAt = time.Now()
 
-	// generate the links and embedded
-	genHalJSONResponse(newPoll, p)
+	genHalJSONResponse(voter, v)
 
-	err = p.savePoll(&newPoll)
+	err = v.saveVoter(&voter)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"msg": "Error saving poll",
+			"msg": "Error saving voter to cache",
 		})
-		p.invalidCall()
+		v.invalidCall()
 		return
 	}
 
-	p.validCall()
-	c.JSON(http.StatusOK, poll)
+	v.validCall()
+	c.JSON(http.StatusOK, voter)
 }
-
-func (v *VotersAPI) DeletePoll(c *gin.Context) {
-	// get the poll id
-	id := c.Param("pollId")
+func (v *VotersAPI) UpdateVoter(c *gin.Context) {
+	var voter schema.Voter
+	id := c.Param("voterId")
 	if id == "" {
-		p.invalidCall()
-		c.JSON(http.StatusBadRequest, gin.H{"error": "No poll ID provided"})
+		v.invalidCall()
+		c.JSON(http.StatusBadRequest, gin.H{"error": "No voter ID provided"})
 		return
 	}
 
-	// check if the poll exists
-	cacheKey := RedisKeyPrefix + id
-	_, err := p.helper.JSONGet(cacheKey, ".")
+	_, err := strconv.Atoi(id)
 	if err != nil {
-		p.invalidCall()
-		c.JSON(http.StatusNotFound, gin.H{"error": "Could not find poll in cache with id=" + cacheKey})
+		c.JSON(http.StatusBadRequest, gin.H{
+			"msg": "Invalid voter id",
+		})
+		v.invalidCall()
 		return
 	}
 
-	// recursive delete of votes will be tough, unless the ids are known...
-	// value search for a key in redis is currently not understood. :(
-	// delete the poll
-	_, err = p.helper.JSONDel(cacheKey, ".")
+	// get the old voter
+	err = getItemFromRedis(id, v, voter)
 	if err != nil {
-		p.invalidCall()
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not delete poll from cache"})
+		c.JSON(http.StatusInternalServerError,
+			gin.H{
+				"msg": "No such voter in the cache\n" + err.Error(),
+			})
+		v.invalidCall()
 		return
 	}
 
-	p.validCall()
-	c.JSON(http.StatusOK, gin.H{"message": "Poll deleted"})
+	var newVoter schema.Voter
+	err = c.BindJSON(&newVoter)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"msg": "Error unmarshalling voter\n" + err.Error(),
+		})
+		v.invalidCall()
+		return
+	}
+
+	// updating the voter should reset the votes.
+	newVoter.Meta.TotalVotes = 0
+	newVoter.Meta.CreatedAt = voter.Meta.CreatedAt
+	newVoter.Meta.UpdatedAt = time.Now()
+
+	genHalJSONResponse(newVoter, v)
+
+	err = v.saveVoter(&newVoter)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"msg": "Error saving voter to cache",
+		})
+		v.invalidCall()
+		return
+	}
+
+	v.validCall()
+	c.JSON(http.StatusOK, newVoter)
+}
+func (v *VotersAPI) DeleteVoter(c *gin.Context) {
+	id := c.Param("voterId")
+	if id == "" {
+		v.invalidCall()
+		c.JSON(http.StatusBadRequest, gin.H{"error": "No voter ID provided"})
+		return
+	}
+
+	_, err := strconv.Atoi(id)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"msg": "Invalid voter id",
+		})
+		v.invalidCall()
+		return
+	}
+
+	voterKey := RedisKeyPrefix + id
+	_, err = v.helper.JSONDel(voterKey, ".")
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"msg": "Error deleting voter from cache",
+		})
+		v.invalidCall()
+		return
+	}
+
+	v.validCall()
+	c.JSON(http.StatusOK, gin.H{
+		"msg": "Voter deleted",
+	})
 }
 
-func (v *VotersAPI) savePoll(poll *schema.Poll) error {
+func (v *VotersAPI) saveVoter(voter *schema.Voter) error {
 	// save vote in redis with votes:<id> as key
-	cacheKey := RedisKeyPrefix + strconv.Itoa(poll.Id)
-	_, err := p.helper.JSONSet(cacheKey, ".", poll)
+	cacheKey := RedisKeyPrefix + strconv.Itoa(voter.Id)
+	_, err := v.helper.JSONSet(cacheKey, ".", voter)
 	if err != nil {
 		return err
 	}
 
 	return nil
+}
+
+func getItemFromRedis(id string, p *VotersAPI, voter schema.Voter) error {
+	voterKey := RedisKeyPrefix + id
+	voterJSON, err := p.helper.JSONGet(voterKey, ".")
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal([]byte(voterJSON.(string)), &voter)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func genHalJSONResponse(voter schema.Voter, p *VotersAPI) {
+	voter.Links.Self.Href = p.API.Self + "/voters/" + strconv.Itoa(voter.Id)
+	voter.Links.Polls.Href = p.API.Polls
 }

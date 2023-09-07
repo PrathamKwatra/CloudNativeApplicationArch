@@ -3,11 +3,10 @@ package main
 import (
 	"flag"
 	"fmt"
-	"os"
-	"strconv"
 	"log"
+	"os"
 
-	"drexel.edu/voter/api"
+	"drexel.edu/voters/api"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
@@ -24,7 +23,6 @@ func processCmdLineFlags() {
 	// flag.StringVar(&hostFlag, "h", "localhost", "Listen on all interfaces")
 	flag.UintVar(&portFlag, "p", 1081, "Default Port (cannot be changed)")
 	flag.StringVar(&cacheURL, "c", "localhost:6379", "Default cache location")
-	
 
 	flag.Parse()
 }
@@ -64,7 +62,7 @@ func main() {
 	r.Use(cors.Default())
 
 	apiHandler, err := api.New(cacheURL, api.API{
-		Self: "http://localhost:1081",
+		Self:  "http://localhost:1081",
 		Polls: "http://localhost:1082/polls",
 		Votes: "http://localhost:1080/votes",
 	})
@@ -73,16 +71,16 @@ func main() {
 		os.Exit(1)
 	}
 
-	r.GET("/", apiHandler.GetPolls)
+	r.GET("/", apiHandler.GetVoters)
 	r.GET("/crash", apiHandler.CrashSim)
 	r.GET("/voters/health", apiHandler.HealthCheck)
-	r.GET("/voters/:pollId", apiHandler.GetVoter)
+	r.GET("/voters/:voterId", apiHandler.GetVoter)
 	// r.GET("/voters/:voterId/polls/:pollsId", apiHandler.GetPoll)
 	r.GET("/voters", apiHandler.GetVoters)
 	r.POST("/voters/:voterId", apiHandler.PostVoter)
 	r.PUT("/voters/:voterId", apiHandler.UpdateVoter)
 	r.DELETE("/voters/:voterId", apiHandler.DeleteVoter)
-	
+
 	serverPath := fmt.Sprintf("%s:%d", hostFlag, portFlag)
 	r.Run(serverPath)
 }

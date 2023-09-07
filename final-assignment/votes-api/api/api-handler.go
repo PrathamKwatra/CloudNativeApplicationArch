@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	RedisKeyPrefix       = "votes:"
+	RedisKeyPrefix = "votes:"
 )
 
 type cache struct {
@@ -235,13 +235,26 @@ func (v *VotesAPI) PostVote(c *gin.Context) {
 		return
 	}
 	// update the poll results
-	poll.Results[vote.VoteValue].Votes++;
+	poll.Results[vote.VoteValue].Votes++
+
 	// update in redis
 	cacheKey = "polls:" + fmt.Sprint(poll.Id)
 	_, err = v.helper.JSONSet(cacheKey, ".", poll)
 	if err != nil {
 		v.invalidCall()
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not update poll results in cache"})
+		return
+	}
+
+	// update the total votes count on Voter
+	voter.Meta.TotalVotes++
+
+	//update in redis
+	cacheKey = "voters:" + fmt.Sprint(voter.Id)
+	_, err = v.helper.JSONSet(cacheKey, ".", voter)
+	if err != nil {
+		v.invalidCall()
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not update voter in cache"})
 		return
 	}
 
@@ -352,10 +365,9 @@ func setLinkAndEmbeddedProps(v *VotesAPI, vote *schema.Vote, voter schema.Voter,
 	vote.Embedded = embedded
 }
 
-
 func (v *VotesAPI) saveVote(vote *schema.Vote) error {
 	// save vote in redis with votes:<id> as key
-	cacheKey := redisKeyFromId(vote.Id);
+	cacheKey := redisKeyFromId(vote.Id)
 	_, err := v.helper.JSONSet(cacheKey, ".", vote)
 	if err != nil {
 		return err

@@ -1,4 +1,4 @@
-module drexel.edu/voter
+module drexel.edu/voters
 
 go 1.20
 

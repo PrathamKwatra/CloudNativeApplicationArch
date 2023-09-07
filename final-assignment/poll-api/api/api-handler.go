@@ -41,8 +41,8 @@ type API struct {
 
 type PollsAPI struct {
 	cache
-	health    Health
-	API       API
+	health Health
+	API    API
 }
 
 func (v *PollsAPI) validCall() {
@@ -213,7 +213,7 @@ func (p *PollsAPI) GetPolls(c *gin.Context) {
 	polls, err := p.helper.JSONGet(pollKey, ".")
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"msg": "Error retrieving polls",
+			"msg": "Error getting polls from cache",
 		})
 		p.invalidCall()
 		return
@@ -223,10 +223,14 @@ func (p *PollsAPI) GetPolls(c *gin.Context) {
 	err = json.Unmarshal([]byte(polls.(string)), &pollList)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"msg": "Error unmarshalling polls",
+			"msg": "Error getting polls from cache",
 		})
 		p.invalidCall()
 		return
+	}
+
+	for i := range pollList {
+		genHalJSONResponse(pollList[i], p)
 	}
 
 	p.validCall()
@@ -255,7 +259,7 @@ func (p *PollsAPI) PostPoll(c *gin.Context) {
 	err = c.BindJSON(&poll)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"msg": "Error unmarshalling poll",
+			"msg": "Error unmarshalling poll\n" + err.Error(),
 		})
 		p.invalidCall()
 		return
@@ -276,7 +280,7 @@ func (p *PollsAPI) PostPoll(c *gin.Context) {
 	err = p.savePoll(&poll)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"msg": "Error saving poll",
+			"msg": "Error saving poll to cache",
 		})
 		p.invalidCall()
 		return
@@ -311,11 +315,12 @@ func (p *PollsAPI) UpdatePoll(c *gin.Context) {
 		return
 	}
 
+	// get the old voter
 	err = getItemFromRedis(id, p, poll)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError,
 			gin.H{
-				"msg": "Unable to retrieve poll.\n" + err.Error(),
+				"msg": "No such voter in the cache\n" + err.Error(),
 			})
 		p.invalidCall()
 		return
@@ -326,7 +331,7 @@ func (p *PollsAPI) UpdatePoll(c *gin.Context) {
 	err = c.BindJSON(&newPoll)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"msg": "Error unmarshalling poll",
+			"msg": "Error unmarshalling poll\n" + err.Error(),
 		})
 		p.invalidCall()
 		return

@@ -2,7 +2,7 @@ import requests
 import json
 from datetime import datetime 
 from jsonTypes import *
-
+import random 
 # Requester
 def request(url, method, data=None):
     match method:
@@ -395,24 +395,10 @@ class IntegratedTests:
     def test2(self):
         vote = Votes(
             Id=2,
-            PollId=2,
+            PollId=1,
             VoterId=2,
             VoteValue=1
         )
-        poll = Poll(
-            Id=2,
-            Title="Test",
-            Question="Test",
-            Options=[
-                PollOption(Id=1, Text="Test"),
-                PollOption(Id=2, Text="Test")
-            ]
-        )
-        url = APIs['polls'] + "/" + str(poll.Id)
-        response = request(url, "POST", poll.model_dump(mode='json'))
-        if response.status_code != 200:
-            raise Exception("Startup failed")
-
         voter = Voter(
             Id=2,
             Name="Test",
@@ -439,7 +425,7 @@ class IntegratedTests:
             raise Exception("Test 2 failed -" + str(response.status_code) + " " + response.text)
         # expects the result to have increased by 1 vote
         ret = response.json()
-        if ret['results'][0]['votes'] != 2:
+        if ret['results'][1]['votes'] != 2:
             raise Exception("Test 2 failed -" + str(response.status_code) + " " + response.text)
         # pretty print the response
         print(json.dumps(response.json(), indent=4))
@@ -449,10 +435,6 @@ class IntegratedTests:
         response = request(url, "DELETE")
         if response.status_code != 200:
             raise Exception("Test 2 failed - voter not deleted")
-        url = APIs['polls'] + "/2"
-        response = request(url, "DELETE")
-        if response.status_code != 200:
-            raise Exception("Test 2 failed - poll not deleted")
         url = APIs['votes'] + "/2"
         response = request(url, "DELETE")
         if response.status_code != 200:
@@ -525,5 +507,51 @@ def main():
     integratedTests.cleanup()
     
 
+def makeSampleDB():
+    # Add three voters
+    for i in range(1, 4):
+        voter = Voter(
+            Id=i,
+            Name="Test",
+            Email=""
+        )
+        url = APIs['voters'] + "/" + str(voter.Id)
+        response = request(url, "POST", voter.model_dump(mode='json'))
+        if response.status_code != 200:
+            raise Exception("Startup failed")
+
+
+    # Add three polls
+    for i in range(1, 4):
+        poll = Poll(
+            Id=i,
+            Title="Test",
+            Question="Test",
+            Options=[
+                PollOption(Id=1, Text="Test"),
+                PollOption(Id=2, Text="Test")
+            ]
+        )
+        url = APIs['polls'] + "/" + str(poll.Id)
+        response = request(url, "POST", poll.model_dump(mode='json'))
+        if response.status_code != 200:
+            raise Exception("Startup failed")
+
+    # Add 30 votes
+    for i in range(1, 31):
+        vote = Votes(
+            Id=i,
+            PollId=random.randint(1, 3),
+            VoterId=random.randint(1, 3),
+            VoteValue=random.randint(1, 2)
+        )
+        url = APIs['votes'] + "/" + str(vote.Id)
+        response = request(url, "POST", vote.model_dump(mode='json'))
+        if response.status_code != 200:
+            raise Exception("Startup failed")
+        
+
+
 if __name__ == "__main__":
     main()
+    # makeSampleDB()

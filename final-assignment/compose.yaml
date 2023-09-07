@@ -6,14 +6,14 @@ services:
     restart: on-failure
     ports:
       - "6379:6379"
-      - "8001:8001"
+      # - "8001:8001"
     volumes:
       - ./cache-data:/data
     environment:
       - REDIS_ARGS=--appendonly yes
     networks:
       - backend
-      - frontend
+      # - frontend
 
   cache-init:
     image: redis/redis-stack:latest
@@ -42,18 +42,11 @@ services:
     depends_on:
       votes-api:
         condition: service_started
-      # cache-init:
-      #   condition: service_completed_successfully
     networks:
       - frontend
       - backend
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:1081/voters/health"]
-      interval: 1m30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
-      start_interval: 5s
+    # healthcheck:
+    #   test: ["CMD", "curl", "-f", "http://localhost:1081/voters/health"]
 
   poll-api:
     build:
@@ -68,18 +61,11 @@ services:
     depends_on:
       votes-api:
         condition: service_started
-      # cache-init:
-      #   condition: service_completed_successfully
     networks:
       - frontend
       - backend
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:1082/polls/health"]
-      interval: 1m30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
-      start_interval: 5s
+    # healthcheck:
+    #   test: ["CMD", "curl", "-f", "http://localhost:1082/polls/health"]
 
   votes-api:
     build:
@@ -96,18 +82,11 @@ services:
     depends_on:
       cache:
         condition: service_started
-      # cache-init:
-      #   condition: service_completed_successfully
     networks:
       - frontend
       - backend
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:1080/votes/health"]
-      interval: 1m30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
-      start_interval: 5s
+    # healthcheck:
+    #   test: ["CMD", "curl", "-f", "http://localhost:1080/votes/health"]
 
   testing:
     profiles: ["test"]
@@ -123,11 +102,11 @@ services:
       cache:
         condition: service_started
       votes-api:
-        condition: service_healthy
+        condition: service_started
       poll-api:
-        condition: service_healthy
+        condition: service_started
       voter-api:
-        condition: service_healthy
+        condition: service_started
     networks:
       - frontend
 

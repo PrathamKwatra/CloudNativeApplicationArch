@@ -21,6 +21,12 @@ It works on most devices!
 docker compose --profile test up
 ```
 
+There is also some more testing features available. If needed, a sample db creator command is available to
+create a sample db. Though, this requires some extra work, as it would require commenting the ```main()```
+on line 556 and uncommenting the line 557.
+
+To view the data in redis, uncomment line 9 and 16 in ```compose.yaml```
+
 # Limitations
 The DELETE commands sent on voter or poll does not search for related votes. Hence the votes
 are not deleted if the poll/voter is deleted. This may cause a problem if a voter/poll is 

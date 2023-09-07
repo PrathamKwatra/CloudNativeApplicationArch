@@ -199,28 +199,20 @@ func (p *PollsAPI) GetResults(c *gin.Context) {
 }
 
 func (p *PollsAPI) GetPolls(c *gin.Context) {
-	pollKey := RedisKeyPrefix + "*"
-	polls, err := p.helper.JSONGet(pollKey, ".")
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"msg": "Error getting polls from cache",
-		})
-		p.invalidCall()
-		return
-	}
-
 	var pollList []schema.Poll
-	err = json.Unmarshal(polls.([]byte), &pollList)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"msg": "Error getting polls from cache",
-		})
-		p.invalidCall()
-		return
-	}
-
-	for i := range pollList {
-		genHalJSONResponse(&pollList[i], p)
+	var poll schema.Poll
+	pollKey := RedisKeyPrefix + "*"
+	ks, _ := p.client.Keys(p.context, pollKey).Result()
+	for _, key := range ks {
+		err := getItemFromRedis(key, p, &poll)
+		if err != nil {
+			p.invalidCall()
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not find vote in cache with id=" + key})
+			return
+		}
+		//generate the latest HAL JSON response
+		genHalJSONResponse(&poll, p)
+		pollList = append(pollList, poll)
 	}
 
 	p.validCall()

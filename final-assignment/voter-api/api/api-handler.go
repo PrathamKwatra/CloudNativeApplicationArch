@@ -147,29 +147,20 @@ func (v *VotersAPI) GetVoter(c *gin.Context) {
 }
 func (v *VotersAPI) GetVoters(c *gin.Context) {
 	voterKey := RedisKeyPrefix + "*"
-	voters, err := v.helper.JSONGet(voterKey, ".")
-	if err != nil {
-		c.JSON(http.StatusInternalServerError,
-			gin.H{
-				"msg": "Error getting voters from cache",
-			})
-		v.invalidCall()
-		return
-	}
-
 	var voterList []schema.Voter
-	err = json.Unmarshal(voters.([]byte), &voterList)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError,
-			gin.H{
-				"msg": "Error getting voters from cache",
-			})
-		v.invalidCall()
-		return
-	}
+	var voter schema.Voter
 
-	for i := range voterList {
-		genHalJSONResponse(&voterList[i], v)
+	ks, _ := v.client.Keys(v.context, voterKey).Result()
+	for _, key := range ks {
+		err := getItemFromRedis(key, v, &voter)
+		if err != nil {
+			v.invalidCall()
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not find vote in cache with id=" + key})
+			return
+		}
+		//generate the latest HAL JSON response
+		genHalJSONResponse(&voter, v)
+		voterList = append(voterList, voter)
 	}
 
 	v.validCall()
@@ -348,9 +339,9 @@ func getItemFromRedis(id string, p *VotersAPI, voter *schema.Voter) error {
 	return nil
 }
 
-func genHalJSONResponse(voter *schema.Voter, p *VotersAPI) {
-	voter.Links.Self.Href = p.API.Self + "/voters/" + strconv.Itoa(voter.Id)
-	voter.Links.Polls.Href = p.API.Polls
-	voter.Links.Votes.Href = p.API.Votes + "/voters/" + strconv.Itoa(voter.Id)
-	voter.Links.Vote.Href = p.API.Votes + "/voters/" + strconv.Itoa(voter.Id)
+func genHalJSONResponse(voter *schema.Voter, v *VotersAPI) {
+	voter.Links.Self.Href = v.API.Self + "/voters/" + strconv.Itoa(voter.Id)
+	voter.Links.Polls.Href = v.API.Polls
+	voter.Links.Votes.Href = v.API.Votes + "/voters/" + strconv.Itoa(voter.Id)
+	voter.Links.Vote.Href = v.API.Votes + "/voters/" + strconv.Itoa(voter.Id)
 }

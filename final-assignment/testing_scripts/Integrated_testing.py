@@ -337,8 +337,8 @@ class VoteTests:
 
 # Integrated tests
 # 1. Add a new vote, ask for poll results, delete the vote, ask for poll results
-# 2. Add a new vote, ask for poll results, update the vote, ask for poll results, delete the vote, ask for poll results
-# 3. Add a new vote, lookup voter, look at all votes created by the voter
+# 2. Add a new vote, ask for poll result
+# 3. Look for previous vote, lookup voter, look at all votes created by the voter
 class IntegratedTests:
     def __init__(self, url):
         self.url = url
@@ -392,12 +392,87 @@ class IntegratedTests:
         # pretty print the response
         print(json.dumps(response.json(), indent=4))
 
-    def cleanup(self):
-        # delete vote 1
-        url = APIs['votes'] + "/1"
+    def test2(self):
+        vote = Votes(
+            Id=2,
+            PollId=2,
+            VoterId=2,
+            VoteValue=1
+        )
+        poll = Poll(
+            Id=2,
+            Title="Test",
+            Question="Test",
+            Options=[
+                PollOption(Id=1, Text="Test"),
+                PollOption(Id=2, Text="Test")
+            ]
+        )
+        url = APIs['polls'] + "/" + str(poll.Id)
+        response = request(url, "POST", poll.model_dump(mode='json'))
+        if response.status_code != 200:
+            raise Exception("Startup failed")
+
+        voter = Voter(
+            Id=2,
+            Name="Test",
+            Email=""            
+        )
+        url = APIs['voters'] + "/" + str(voter.Id)
+        response = request(url, "POST", voter.model_dump(mode='json'))
+        if response.status_code != 200:
+            raise Exception("Startup failed")
+                
+               
+        url = APIs['votes'] + "/" + str(vote.Id)
+        response = request(url, "POST", vote.model_dump(mode='json'))
+        if response.status_code != 200:
+            raise Exception("Test 2 failed -" + str(response.status_code) + " " + response.text)
+        response = request(url, "GET")
+        # use the _links to get the poll results
+        if response.status_code != 200:
+            raise Exception("Test 2 failed -" + str(response.status_code) + " " + response.text)
+        ret = response.json()
+        ret = ret['_links']['results']['href']
+        response = request(ret, "GET")
+        if response.status_code != 200:
+            raise Exception("Test 2 failed -" + str(response.status_code) + " " + response.text)
+        # expects the result to have increased by 1 vote
+        ret = response.json()
+        if ret['results'][0]['votes'] != 2:
+            raise Exception("Test 2 failed -" + str(response.status_code) + " " + response.text)
+        # pretty print the response
+        print(json.dumps(response.json(), indent=4))
+        
+        # delete the voterId=2, pollId=2, voteId=2
+        url = APIs['voters'] + "/2"
         response = request(url, "DELETE")
         if response.status_code != 200:
-            raise Exception("Cleanup failed - vote not deleted")
+            raise Exception("Test 2 failed - voter not deleted")
+        url = APIs['polls'] + "/2"
+        response = request(url, "DELETE")
+        if response.status_code != 200:
+            raise Exception("Test 2 failed - poll not deleted")
+        url = APIs['votes'] + "/2"
+        response = request(url, "DELETE")
+        if response.status_code != 200:
+            raise Exception("Test 2 failed - vote not deleted")
+        
+    def test3(self):
+        url = APIs['votes'] + "/1"
+        response = request(url, "GET")
+        # use the _links to get the voter
+        if response.status_code != 200:
+            raise Exception("Test 3 failed -" + str(response.status_code) + " " + response.text)
+        ret = response.json()
+        ret = ret['_links']['voter']['href']
+        response = request(ret, "GET")
+        if response.status_code != 200:
+            raise Exception("Test 3 failed -" + str(response.status_code) + " " + response.text)
+        # pretty print the response
+        print(json.dumps(response.json(), indent=4))
+
+    def cleanup(self):
         # delete voter 1
         url = APIs['voters'] + "/1"
         response = request(url, "DELETE")
@@ -408,6 +483,11 @@ class IntegratedTests:
         response = request(url, "DELETE")
         if response.status_code != 200:
             raise Exception("Cleanup failed - poll not deleted")
+        # delete vote 1
+        url = APIs['votes'] + "/1"
+        response = request(url, "DELETE")
+        if response.status_code != 200:
+            raise Exception("Cleanup failed - vote not deleted")
         
         
 def main():
@@ -440,6 +520,8 @@ def main():
     integratedTests = IntegratedTests(APIs['votes'])
     integratedTests.startup()
     integratedTests.test1()
+    integratedTests.test2()
+    integratedTests.test3()
     integratedTests.cleanup()
     
 

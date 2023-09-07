@@ -2,6 +2,7 @@ from typing import Any, List, Optional
 
 from pydantic import BaseModel, Json
 from datetime import datetime
+import os
 
 APIs = {
     'polls': 'http://localhost:1082/polls',
@@ -122,6 +123,19 @@ def testModels():
     print(voterDict)
     print(poll)
     print(vote)
+
+def envOrDefault(key, default):
+    if key in os.environ:
+        return os.environ[key]
+    else:
+        return default
+
+def setUpAPIs():
+    APIs['polls'] = envOrDefault('POLL_API', 'http://localhost:1082/polls')
+    APIs['voters'] = envOrDefault('VOTER_API', 'http://localhost:1081/voters')
+    APIs['votes'] = envOrDefault('VOTE_API', 'http://localhost:1080/votes')
+
+setUpAPIs()
 
 if __name__ == "__main__":
     testModels()

@@ -88,6 +88,28 @@ services:
       - frontend
       - backend
 
+  testing:
+    profiles: ["test"]
+    build:
+      context: ./testing_scripts
+      dockerfile: dockerfile
+    container_name: testing
+    restart: "no"
+    environment:
+      - POLL_API_URL=http://poll-api:1082/polls
+      - VOTER_API_URL=http://voter-api:1081/voters
+      - VOTES_API_URL=http://votes-api:1080/votes
+    depends_on:
+      cache:
+        condition: service_started
+      votes-api:
+        condition: service_started
+      poll-api:
+        condition: service_started
+      voter-api:
+        condition: service_started
+    networks:
+      - frontend
 
 networks:
   frontend:

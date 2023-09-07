@@ -8,7 +8,7 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV POLL_API="http://poll-api:1082/polls"
 ENV VOTER_API="http://voter-api:1081/voters"
-ENV VOTE_API="http://poll-api:1080/votes"
+ENV VOTE_API="http://vote-api:1080/votes"
 # Install pip requirements
 COPY requirements.txt .
 RUN python -m pip install -r requirements.txt

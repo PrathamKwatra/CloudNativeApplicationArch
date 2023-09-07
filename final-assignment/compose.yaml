@@ -47,6 +47,13 @@ services:
     networks:
       - frontend
       - backend
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:1081/voters/health"]
+      interval: 1m30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+      start_interval: 5s
 
   poll-api:
     build:
@@ -66,6 +73,13 @@ services:
     networks:
       - frontend
       - backend
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:1082/polls/health"]
+      interval: 1m30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+      start_interval: 5s
 
   votes-api:
     build:
@@ -87,6 +101,13 @@ services:
     networks:
       - frontend
       - backend
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:1080/votes/health"]
+      interval: 1m30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+      start_interval: 5s
 
   testing:
     profiles: ["test"]
@@ -94,7 +115,6 @@ services:
       context: ./testing_scripts
       dockerfile: dockerfile
     container_name: testing
-    restart: "no"
     environment:
       - POLL_API_URL=http://poll-api:1082/polls
       - VOTER_API_URL=http://voter-api:1081/voters
@@ -103,11 +123,11 @@ services:
       cache:
         condition: service_started
       votes-api:
-        condition: service_started
+        condition: service_healthy
       poll-api:
-        condition: service_started
+        condition: service_healthy
       voter-api:
-        condition: service_started
+        condition: service_healthy
     networks:
       - frontend
 

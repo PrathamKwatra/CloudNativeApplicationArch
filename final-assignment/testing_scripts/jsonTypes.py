@@ -1,12 +1,12 @@
-from typing import Any, List
+from typing import Any, List, Optional
 
 from pydantic import BaseModel, Json
-from datetime import date, datetime, time, timedelta
+from datetime import datetime
 
 APIs = {
-    'polls': 'https://localhost:1082/polls',
-    'voters': 'https://localhost:1081/voters',
-    'votes': 'https://localhost:1080/votes',
+    'polls': 'http://localhost:1082/polls',
+    'voters': 'http://localhost:1081/voters',
+    'votes': 'http://localhost:1080/votes',
 }
 
 class Link(BaseModel):
@@ -14,16 +14,16 @@ class Link(BaseModel):
     
 class Links(BaseModel):
     Self: Link
-    Poll: Link
-    Vote: Link
-    Voter: Link
-    Voters: Link
-    Polls: Link
-    Results: Link
+    Poll: Optional[Link]  = None
+    Vote: Optional[Link]  = None
+    Voter: Optional[Link]  = None
+    Voters: Optional[Link]  = None
+    Polls: Optional[Link]  = None
+    Results: Optional[Link]  = None
 
 class Meta(BaseModel):
-    TotalPolls: int
-    TotalVotes: int
+    TotalPolls: int = 0
+    TotalVotes: int = 0
     CreatedAt: datetime
     UpdatedAt: datetime
 
@@ -39,11 +39,11 @@ class Poll(BaseModel):
     Id: int
     Title: str
     Question: str
-    Options: List[PollOption]
-    Results: List[Results]
-    Links: Links
-    Embedded: Json[Any]
-    Meta: Meta
+    Options: Optional[List[PollOption]]
+    Results: Optional[List[Results]] = None
+    Links: Optional[Links] = None
+    Embedded:  Any = None
+    Meta: Optional[Meta] = None
 
 class VoterPoll(BaseModel):
     PollId: int
@@ -54,17 +54,74 @@ class Voter(BaseModel):
     Id: int
     Name: str
     Email: str
-    VoterPolls: List[VoterPoll]
-    Links: Links
-    Embedded: Json[Any]
-    Meta: Meta
+    VoterPolls: Optional[List[VoterPoll]] = []
+    Links: Optional[Links] = None
+    Embedded:  Any = None
+    Meta: Optional[Meta] = None
 
 class Votes(BaseModel):
     Id: int
     PollId: int
     VoterId: int
     VoteValue: int
-    Links: Links
-    Embedded: Json[Any]
-    Meta: Meta
+    Links: Optional[Links] = None
+    Embedded:  Any = None
+    Meta: Optional[Meta] = None
 
+def testModels():
+        # test voter model from jsonTypes
+    voter = Voter(
+        Id=1,
+        Name="Test",
+        Email=""
+    )
+    
+    # test poll model from jsonTypes
+    poll = Poll(
+        Id=1,
+        Title="Test",
+        Question="Test",
+        Options=[PollOption(Id=1, Text="Test")],
+        Results=[Results(OptionId=1, Votes=1)],
+        Links=Links(
+            Self=Link(Href=APIs['polls'] + "/1"),
+            Voters=Link(Href=APIs['voters']),
+            Votes = Link(Href=APIs['votes']),
+            Polls = Link(Href=APIs['polls']),
+            Results = Link(Href=APIs['polls'] + "/1/results"),
+        ),
+        Embedded=None,
+        Meta=Meta(
+            TotalVotes=1,
+            CreatedAt=datetime.now(),
+            UpdatedAt=datetime.now()
+        )
+    )
+
+    # test vote model from jsonTypes
+    vote = Votes(
+        Id=1,
+        PollId=1,
+        VoterId=1,
+        VoteValue=1,
+        Links=Links(
+            Self=Link(Href=APIs['votes'] + "/1"),
+            Voter=Link(Href=APIs['voters'] + "/1"),
+            Poll=Link(Href=APIs['polls'] + "/1"),
+            Votes=Link(Href=APIs['votes']),
+            Results=Link(Href=APIs['polls'] + "/1/results"),
+        ),
+        Embedded=None,
+        Meta=Meta(
+            CreatedAt=datetime.now(),
+            UpdatedAt=datetime.now()
+        )
+    )
+    
+    voterDict = voter.model_dump()
+    print(voterDict)
+    print(poll)
+    print(vote)
+
+if __name__ == "__main__":
+    testModels()

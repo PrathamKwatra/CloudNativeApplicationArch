@@ -18,7 +18,6 @@ type VoterPoll struct {
 	PollId  int       `json:"pollId"`
 	VoteId  int       `json:"voteId"`
 	VotedAt time.Time `json:"votedAt"`
-	Links   Links     `json:"_links"`
 }
 
 type Voter struct {
@@ -61,6 +60,7 @@ type Links struct {
 	Self    Link `json:"self"`
 	Poll    Link `json:"poll,omitempty"`
 	Vote    Link `json:"vote,omitempty"`
+	Votes   Link `json:"votes,omitempty"`
 	Voter   Link `json:"voter,omitempty"`
 	Voters  Link `json:"voters,omitempty"`
 	Polls   Link `json:"polls,omitempty"`

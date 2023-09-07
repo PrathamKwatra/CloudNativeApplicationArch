@@ -131,17 +131,17 @@ func (v *VotersAPI) GetVoter(c *gin.Context) {
 		return
 	}
 
-	err = getItemFromRedis(id, v, voter)
+	err = getItemFromRedis(id, v, &voter)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError,
+		c.JSON(http.StatusBadRequest,
 			gin.H{
-				"msg": "Error getting voter from cache",
+				"msg": "No such voter in the cache\n" + err.Error(),
 			})
 		v.invalidCall()
 		return
 	}
 
-	genHalJSONResponse(voter, v)
+	genHalJSONResponse(&voter, v)
 	v.validCall()
 	c.JSON(http.StatusOK, voter)
 }
@@ -158,7 +158,7 @@ func (v *VotersAPI) GetVoters(c *gin.Context) {
 	}
 
 	var voterList []schema.Voter
-	err = json.Unmarshal([]byte(voters.(string)), &voterList)
+	err = json.Unmarshal(voters.([]byte), &voterList)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError,
 			gin.H{
@@ -169,7 +169,7 @@ func (v *VotersAPI) GetVoters(c *gin.Context) {
 	}
 
 	for i := range voterList {
-		genHalJSONResponse(voterList[i], v)
+		genHalJSONResponse(&voterList[i], v)
 	}
 
 	v.validCall()
@@ -193,6 +193,16 @@ func (v *VotersAPI) PostVoter(c *gin.Context) {
 		return
 	}
 
+	// confirm that the voter does not exist
+	err = getItemFromRedis(id, v, &voter)
+	if err == nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"msg": "Voter already exists",
+		})
+		v.invalidCall()
+		return
+	}
+
 	// bind the request body into a voter struct
 	err = c.BindJSON(&voter)
 	if err != nil {
@@ -206,8 +216,9 @@ func (v *VotersAPI) PostVoter(c *gin.Context) {
 	voter.VoterPolls = []schema.VoterPoll{}
 	voter.Meta.TotalVotes = 0
 	voter.Meta.CreatedAt = time.Now()
+	voter.Meta.UpdatedAt = time.Now()
 
-	genHalJSONResponse(voter, v)
+	genHalJSONResponse(&voter, v)
 
 	err = v.saveVoter(&voter)
 	if err != nil {
@@ -240,7 +251,7 @@ func (v *VotersAPI) UpdateVoter(c *gin.Context) {
 	}
 
 	// get the old voter
-	err = getItemFromRedis(id, v, voter)
+	err = getItemFromRedis(id, v, &voter)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError,
 			gin.H{
@@ -265,7 +276,7 @@ func (v *VotersAPI) UpdateVoter(c *gin.Context) {
 	newVoter.Meta.CreatedAt = voter.Meta.CreatedAt
 	newVoter.Meta.UpdatedAt = time.Now()
 
-	genHalJSONResponse(newVoter, v)
+	genHalJSONResponse(&newVoter, v)
 
 	err = v.saveVoter(&newVoter)
 	if err != nil {
@@ -323,21 +334,23 @@ func (v *VotersAPI) saveVoter(voter *schema.Voter) error {
 	return nil
 }
 
-func getItemFromRedis(id string, p *VotersAPI, voter schema.Voter) error {
+func getItemFromRedis(id string, p *VotersAPI, voter *schema.Voter) error {
 	voterKey := RedisKeyPrefix + id
 	voterJSON, err := p.helper.JSONGet(voterKey, ".")
 	if err != nil {
 		return err
 	}
 
-	err = json.Unmarshal([]byte(voterJSON.(string)), &voter)
+	err = json.Unmarshal(voterJSON.([]byte), &voter)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func genHalJSONResponse(voter schema.Voter, p *VotersAPI) {
+func genHalJSONResponse(voter *schema.Voter, p *VotersAPI) {
 	voter.Links.Self.Href = p.API.Self + "/voters/" + strconv.Itoa(voter.Id)
 	voter.Links.Polls.Href = p.API.Polls
+	voter.Links.Votes.Href = p.API.Votes + "/voters/" + strconv.Itoa(voter.Id)
+	voter.Links.Vote.Href = p.API.Votes + "/voters/" + strconv.Itoa(voter.Id)
 }

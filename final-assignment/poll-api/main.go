@@ -79,6 +79,7 @@ func main() {
 	r.GET("/polls", apiHandler.GetPolls)
 	r.POST("/polls/:pollId", apiHandler.PostPoll)
 	r.PUT("/polls/:pollId", apiHandler.UpdatePoll)
+	r.PUT("/polls/counts/:pollId", apiHandler.UpdateOptionCounts)
 	r.DELETE("/polls/:pollId", apiHandler.DeletePoll)
 
 	serverPath := fmt.Sprintf("%s:%d", hostFlag, portFlag)

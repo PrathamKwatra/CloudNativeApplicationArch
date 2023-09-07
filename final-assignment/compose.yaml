@@ -23,7 +23,7 @@ services:
       - REDIS_ARGS=--appendonly yes
     networks:
       - backend
-    # command: /data/load-redis.sh cache
+    command: /data/load-redis.sh cache
     depends_on:
       cache:
         condition: service_started
@@ -77,6 +77,8 @@ services:
       - '1080:1080'
     environment:
       - REDIS_URL=cache:6379
+      - POLL_API_URL=http://poll-api:1082/polls
+      - VOTER_API_URL=http://voter-api:1081/voters
     depends_on:
       cache:
         condition: service_started

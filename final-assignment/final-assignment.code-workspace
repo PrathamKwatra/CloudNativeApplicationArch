@@ -16,5 +16,10 @@
 			"path": "testing_scripts"
 		}
 	],
-	"settings": {}
+	"settings": {
+		"[python]": {
+			"editor.defaultFormatter": "ms-python.python"
+		},
+		"python.formatting.provider": "none"
+	}
 }
